@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const voiceTags = document.getElementById("voice-tags");
   const closeModal = document.getElementById("close-modal");
 
-  fetch('data/final_db_clustered_tagged_cleaned.json')
+  fetch('final_db_clustered_tagged_cleaned.json')
     .then(res => res.json())
     .then(data => {
       data.forEach(item => {
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-  fetch('data/facts.json')
+  fetch('facts.json')
     .then(res => res.json())
     .then(data => {
       const insights = data.healing_insights;
