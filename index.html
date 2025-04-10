@@ -1,28 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hope & Healing</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healing Journeys</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav>
-    <a href="#insights">Insights</a>
-    <a href="#about">About</a>
-    <a href="#donate" class="donate">Donate</a>
-  </nav>
 
-<!-- Thumbnail in carousel -->
-<img src="thumbnail.jpg" onclick="openVideo('https://your-video-url.mp4')" class="cursor-pointer w-40">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#carousel-section" class="nav-logo">Healing Journeys</a>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#insights-section" class="nav-link">Insights</a></li>
+                <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
+                <li class="nav-item"><a href="#" class="nav-link donate-button">Donate</a></li>
+            </ul>
+        </div>
+    </nav>
 
-<!-- Video Modal -->
-<div id="videoModal" onclick="closeVideo()" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
-  <video id="videoPlayer" controls autoplay class="max-w-full max-h-full"></video>
-</div>
+    <section id="carousel-section" class="carousel-container">
+        <h2>Inspiring Stories</h2>
+        <div id="testimonial-carousel" class="carousel">
+            <div class="carousel-placeholder">Loading testimonials...</div>
+        </div>
+        <button id="prev-btn" class="carousel-btn prev" aria-label="Previous Testimonial">&lt;</button>
+        <button id="next-btn" class="carousel-btn next" aria-label="Next Testimonial">&gt;</button>
+    </section>
 
-<!-- JS reference -->
-<script src="video-modal.js"></script>
+    <section id="insights-section" class="insights-container">
+        <h2>Healing Insights</h2>
+        <div id="healing-fact" class="fact-card">
+            <p>Loading insights...</p>
+        </div>
+    </section>
 
+    <div id="video-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" aria-label="Close modal">&times;</span>
+            <div class="video-wrapper">
+                 <iframe id="video-iframe"
+                    width="560" height="315"
+                    src=""
+                    title="Testimonial Video"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <div id="voice-tags-display" class="voice-tags">
+                </div>
+        </div>
+    </div>
+
+    <section id="about" style="padding: 40px; text-align: center; background-color: #f4f4f4;">
+        <h2>About Us</h2>
+        <p>Information about the project or organization.</p>
+    </section>
+
+    <script src="script.js"></script>
 </body>
 </html>
