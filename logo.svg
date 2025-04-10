@@ -1,0 +1,34 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="spaceGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:#e8f5e9; stop-opacity:1" /> <stop offset="80%" style="stop-color:#4CAF50; stop-opacity:0.8" /> <stop offset="100%" style="stop-color:#2e7d32; stop-opacity:0.7" /> </radialGradient>
+     <linearGradient id="arrowGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF9800; stop-opacity:1" /> <stop offset="100%" style="stop-color:#fff; stop-opacity:0.8" /> </linearGradient>
+  </defs>
+
+  <circle cx="30" cy="30" r="28" fill="url(#spaceGradient)" />
+
+  <circle cx="15" cy="20" r="1" fill="white" opacity="0.8"/>
+  <circle cx="35" cy="15" r="0.8" fill="white" opacity="0.7"/>
+  <circle cx="45" cy="40" r="1.2" fill="white" opacity="0.9"/>
+   <circle cx="25" cy="45" r="0.7" fill="white" opacity="0.6"/>
+
+   <path d="M 20 40 Q 30 30 30 15 L 30 10 L 35 18 L 40 10 L 40 15 Q 40 30 50 40 Z" fill="url(#arrowGradient)" opacity="0.85" transform="translate(-3, 0)"/>
+
+
+  <text x="70" y="38"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+        font-size="20"
+        font-weight="bold"
+        fill="#333">
+    Future Self
+  </text>
+
+  <text x="175" y="50"
+        font-family="monospace"
+        font-size="10"
+        fill="#666">
+    .space
+  </text>
+</svg>
+
