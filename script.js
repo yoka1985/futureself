@@ -1,22 +1,47 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
+    // Select elements and immediately check if they exist
     const carousel = document.getElementById('testimonial-carousel');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const healingFactContainer = document.getElementById('healing-fact');
     const modal = document.getElementById('video-modal');
-    const modalCloseBtn = modal.querySelector('.close-button');
     const videoIframe = document.getElementById('video-iframe');
     const voiceTagsDisplay = document.getElementById('voice-tags-display');
 
+    // Select modal close button *after* confirming modal exists
+    const modalCloseBtn = modal ? modal.querySelector('.close-button') : null;
+
+    // --- Log Elements for Debugging (Optional) ---
+    // console.log('Carousel Element:', carousel);
+    // console.log('Prev Button Element:', prevBtn);
+    // console.log('Next Button Element:', nextBtn);
+    // console.log('Healing Fact Container:', healingFactContainer);
+    // console.log('Modal Element:', modal);
+    // console.log('Modal Close Button:', modalCloseBtn);
+    // console.log('Video Iframe:', videoIframe);
+    // console.log('Voice Tags Display:', voiceTagsDisplay);
+
+    // --- Check if Essential Elements Exist ---
+    if (!carousel || !healingFactContainer || !modal || !modalCloseBtn || !videoIframe || !voiceTagsDisplay) {
+        console.error('Essential UI elements not found! Check HTML IDs and structure.');
+        // Optionally display a user-friendly error message on the page
+        // document.body.innerHTML = '<h1>Error loading page content. Please try again later.</h1>';
+        return; // Stop script execution if critical elements are missing
+    }
+     // Hide buttons initially, show them later only if needed
+     if (prevBtn) prevBtn.style.display = 'none';
+     if (nextBtn) nextBtn.style.display = 'none';
+
+
     // --- State Variables ---
     let testimonialsData = [];
-    let factsData = { healing_insights: [] }; // Initialize with empty array
+    let factsData = { healing_insights: [] };
     let currentSlideIndex = 0;
     let currentFactIndex = 0;
-    let factIntervalId = null; // To hold the interval timer
+    let factIntervalId = null;
 
-    const FACT_ROTATION_INTERVAL = 900000; // 15 minutes in milliseconds
+    const FACT_ROTATION_INTERVAL = 900000; // 15 minutes
 
     // --- Fetch Data ---
     function fetchData() {
@@ -27,8 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error fetching testimonials:', error);
-                carousel.innerHTML = '<p class="error-message">Could not load testimonials.</p>';
-                return []; // Return empty array on error
+                if (carousel) { // Check if carousel exists before modifying
+                     carousel.innerHTML = '<p class="error-message">Could not load testimonials.</p>';
+                }
+                return [];
             });
 
         const factsPromise = fetch('facts.json')
@@ -38,96 +65,83 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error fetching facts:', error);
-                healingFactContainer.innerHTML = '<p class="error-message">Could not load insights.</p>';
-                return { healing_insights: [] }; // Return object with empty array on error
+                 if (healingFactContainer) { // Check if container exists
+                    healingFactContainer.innerHTML = '<p class="error-message">Could not load insights.</p>';
+                 }
+                return { healing_insights: [] };
             });
 
-        // Wait for both fetches to complete
         Promise.all([testimonialsPromise, factsPromise])
             .then(([testimonials, facts]) => {
                 testimonialsData = testimonials;
                 factsData = facts;
 
-                // Initialize UI only after data is loaded
-                if (testimonialsData.length > 0) {
+                // Initialize UI *only if elements exist*
+                if (carousel && testimonialsData.length > 0) {
                     createCarouselSlides();
-                    showSlide(currentSlideIndex); // Show the first slide
-                } else if (!carousel.querySelector('.error-message')) {
-                     carousel.innerHTML = '<p>No testimonials available.</p>';
-                     prevBtn.style.display = 'none'; // Hide buttons if no slides
-                     nextBtn.style.display = 'none';
+                    showSlide(currentSlideIndex);
+                } else if (carousel && !carousel.querySelector('.error-message')) {
+                    carousel.innerHTML = '<p>No testimonials available.</p>';
                 }
 
-
-                if (factsData.healing_insights.length > 0) {
-                    displayFact(currentFactIndex); // Display the first fact
-                    startFactRotation(); // Start rotating facts
-                } else if (!healingFactContainer.querySelector('.error-message')) {
-                     healingFactContainer.innerHTML = '<p>No insights available.</p>';
+                if (healingFactContainer && factsData.healing_insights.length > 0) {
+                    displayFact(currentFactIndex);
+                    startFactRotation();
+                } else if (healingFactContainer && !healingFactContainer.querySelector('.error-message')) {
+                    healingFactContainer.innerHTML = '<p>No insights available.</p>';
                 }
             });
     }
 
     // --- Carousel Logic ---
     function createCarouselSlides() {
-        // Clear placeholder or error message
-        carousel.innerHTML = '';
+        if (!carousel) return; // Guard clause
+        carousel.innerHTML = ''; // Clear placeholder
 
         testimonialsData.forEach((item, index) => {
             const slide = document.createElement('div');
             slide.className = 'carousel-slide';
-            slide.setAttribute('data-index', index); // Keep track of index
+            slide.setAttribute('data-index', index);
 
             const img = document.createElement('img');
             img.src = item.thumbnail_url;
-            // Use title for alt text, provide fallback if missing
             img.alt = item.title || 'Testimonial thumbnail';
-            img.loading = 'lazy'; // Lazy load images
-
-            // Store video data directly on the image element for easy access
-            img.dataset.videoUrl = item.url; // The video URL to embed
-            // Join tags nicely, handle case where it might be missing/empty
+            img.loading = 'lazy';
+            img.dataset.videoUrl = item.url;
             img.dataset.voiceTags = (item.voice_tags || []).join(' | ');
-
-            // Add click listener to the image to open the modal
-            img.addEventListener('click', handleImageClick);
+            img.addEventListener('click', handleImageClick); // Add listener here
 
             const quote = document.createElement('p');
             quote.className = 'quote';
-            // Use the first hope-driven quote, provide fallback
-            quote.textContent = (item.hope_driven_quotes && item.hope_driven_quotes.length > 0)
+            quote.textContent = (item.hope_driven_quotes && item.hope_driven_quotes[0])
                                 ? `"${item.hope_driven_quotes[0]}"`
-                                : "An inspiring journey."; // Fallback quote
+                                : "An inspiring journey.";
 
             slide.appendChild(img);
             slide.appendChild(quote);
-            carousel.appendChild(slide);
+            carousel.appendChild(slide); // This is safe now because we checked 'carousel'
         });
 
-         // Hide buttons if only one slide
-        if (testimonialsData.length <= 1) {
-            prevBtn.style.display = 'none';
-            nextBtn.style.display = 'none';
+        // Show/hide buttons based on slide count (check if buttons exist first)
+        if (testimonialsData.length > 1) {
+           if (prevBtn) prevBtn.style.display = 'block';
+           if (nextBtn) nextBtn.style.display = 'block';
         } else {
-             prevBtn.style.display = 'block';
-             nextBtn.style.display = 'block';
+           if (prevBtn) prevBtn.style.display = 'none';
+           if (nextBtn) nextBtn.style.display = 'none';
         }
     }
 
     function showSlide(index) {
+        if (!carousel) return; // Guard clause
         const slides = carousel.querySelectorAll('.carousel-slide');
-        if (!slides || slides.length === 0) return; // Guard against no slides
+        if (!slides || slides.length === 0) return;
 
-        // Ensure index is within bounds
         const numSlides = slides.length;
-        // Use modulo for wrapping, ensuring positive result
         currentSlideIndex = ((index % numSlides) + numSlides) % numSlides;
 
         slides.forEach((slide, i) => {
-            slide.classList.remove('active');
-            if (i === currentSlideIndex) {
-                slide.classList.add('active');
-            }
+            slide.classList.toggle('active', i === currentSlideIndex); // More concise way to toggle active class
         });
     }
 
@@ -140,36 +154,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Modal Logic ---
-     function handleImageClick(event) {
+    function handleImageClick(event) {
+        // We already checked modal, videoIframe, voiceTagsDisplay exist
         const img = event.target;
         const videoUrl = img.dataset.videoUrl;
         const voiceTags = img.dataset.voiceTags;
 
         if (videoUrl) {
-            // Attempt to create an embeddable URL if needed (basic YouTube example)
-            let embedUrl = videoUrl;
-            // Simple check if it's a youtube link that needs embedding
-             if (videoUrl.includes("youtube.com/watch?v=")) {
-                const videoId = videoUrl.split('v=')[1].split('&')[0]; // Extract video ID
-                embedUrl = `https://www.youtube.com/embed/${videoId}`;
-            } else if (videoUrl.includes("youtu.be/")) {
-                 const videoId = videoUrl.split('youtu.be/')[1].split('?')[0];
-                 embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            let embedUrl = videoUrl; // Basic assumption
+             // Basic YouTube URL to Embed URL conversion (adjust if needed)
+            try {
+                 if (videoUrl.includes("youtube.com/watch?v=")) {
+                    const urlParams = new URLSearchParams(new URL(videoUrl).search);
+                    const videoId = urlParams.get('v');
+                    if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                } else if (videoUrl.includes("youtu.be/")) {
+                    const pathSegments = new URL(videoUrl).pathname.split('/');
+                    const videoId = pathSegments[pathSegments.length - 1];
+                     if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                }
+            } catch (e) {
+                console.error("Error parsing video URL:", e);
+                // Keep embedUrl as the original videoUrl if parsing fails
             }
-            // Add other video platform embed logic if necessary
-
-            videoIframe.src = embedUrl; // Set iframe source
+            videoIframe.src = embedUrl;
         } else {
-            videoIframe.src = ''; // Clear src if no URL
-             console.warn("No video URL found for this testimonial image.");
+            videoIframe.src = '';
+            console.warn("No video URL found for this testimonial image.");
         }
 
-        // Display voice tags
         voiceTagsDisplay.innerHTML = ''; // Clear previous tags
         if (voiceTags) {
-            const tagsArray = voiceTags.split(' | '); // Split back into array
+            const tagsArray = voiceTags.split(' | ');
             tagsArray.forEach(tag => {
-                if(tag.trim()){ // Ensure tag is not empty
+                if (tag.trim()) {
                     const tagElement = document.createElement('span');
                     tagElement.textContent = tag.trim();
                     voiceTagsDisplay.appendChild(tagElement);
@@ -179,22 +197,24 @@ document.addEventListener('DOMContentLoaded', () => {
             voiceTagsDisplay.innerHTML = '<span>No voice tags available</span>';
         }
 
-        modal.style.display = 'flex'; // Show modal (using flex as per CSS)
+        modal.style.display = 'flex';
     }
 
     function closeModal() {
-        modal.style.display = 'none'; // Hide modal
-        videoIframe.src = ''; // Stop video playback by clearing src
+        if (!modal || !videoIframe) return; // Guard clause
+        modal.style.display = 'none';
+        videoIframe.src = ''; // Stop video
     }
 
     // --- Healing Insights Logic ---
     function displayFact(index) {
-        if (!factsData.healing_insights || factsData.healing_insights.length === 0) {
-            healingFactContainer.innerHTML = '<p>No insights available.</p>';
-            return; // Exit if no facts
+        if (!healingFactContainer || !factsData.healing_insights || factsData.healing_insights.length === 0) {
+           if (healingFactContainer && !healingFactContainer.querySelector('.error-message')) {
+                 healingFactContainer.innerHTML = '<p>No insights available.</p>';
+            }
+           return;
         }
 
-         // Ensure index is valid
         const safeIndex = index % factsData.healing_insights.length;
         const fact = factsData.healing_insights[safeIndex];
 
@@ -204,53 +224,46 @@ document.addEventListener('DOMContentLoaded', () => {
             ${fact.quote ? `<p class="fact-quote">"${fact.quote}"</p>` : ''}
             ${fact.action ? `<p class="fact-action">${fact.action}</p>` : ''}
         `;
-         // Briefly change background for visual feedback of update
-         healingFactContainer.style.backgroundColor = '#dcedc8'; // Lighter green temporary highlight
-         setTimeout(() => {
-             healingFactContainer.style.backgroundColor = '#fff'; // Return to normal background
-         }, 500); // Duration of the highlight
+        healingFactContainer.style.backgroundColor = '#dcedc8';
+        setTimeout(() => {
+            if (healingFactContainer) healingFactContainer.style.backgroundColor = '#fff';
+        }, 500);
     }
 
     function rotateFact() {
-        if (!factsData.healing_insights || factsData.healing_insights.length === 0) {
-            return; // Don't rotate if no facts
-        }
+        if (!factsData.healing_insights || factsData.healing_insights.length === 0) return;
         currentFactIndex = (currentFactIndex + 1) % factsData.healing_insights.length;
         displayFact(currentFactIndex);
     }
 
     function startFactRotation() {
-         // Clear any existing interval first
-         if (factIntervalId) {
-            clearInterval(factIntervalId);
-        }
-        // Start new interval only if there are facts to rotate
+        if (factIntervalId) clearInterval(factIntervalId);
         if (factsData.healing_insights && factsData.healing_insights.length > 1) {
-             factIntervalId = setInterval(rotateFact, FACT_ROTATION_INTERVAL);
+            factIntervalId = setInterval(rotateFact, FACT_ROTATION_INTERVAL);
         }
     }
 
-    // --- Event Listeners ---
-    prevBtn.addEventListener('click', prevSlide);
-    nextBtn.addEventListener('click', nextSlide);
-    modalCloseBtn.addEventListener('click', closeModal);
+    // --- Event Listeners (Attach only if elements exist) ---
+    if (prevBtn) prevBtn.addEventListener('click', prevSlide);
+    if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal); // Safe now
 
-    // Close modal if clicking outside the modal content
+    // Modal background click listener (safe because we checked 'modal')
     modal.addEventListener('click', (event) => {
-        if (event.target === modal) { // Check if the click was directly on the modal background
+        if (event.target === modal) {
             closeModal();
         }
     });
 
-    // Close modal with the Escape key
-     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && modal.style.display === 'flex') {
+    // Escape key listener
+    document.addEventListener('keydown', (event) => {
+        // Check modal exists and is displayed before closing
+        if (event.key === 'Escape' && modal && modal.style.display === 'flex') {
             closeModal();
         }
     });
-
 
     // --- Initialization ---
-    fetchData(); // Start the process by fetching data
+    fetchData(); // Start fetching data
 
 }); // End DOMContentLoaded
