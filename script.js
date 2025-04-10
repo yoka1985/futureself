@@ -18,11 +18,11 @@ const closeModal = document.getElementById('closeModal');
 async function loadData() {
     try {
         // Load testimonials
-        const testimonialsResponse = await fetch('data/final_db_clustered_tagged_cleaned.json');
+        const testimonialsResponse = await fetch('final_db_clustered_tagged_cleaned.json');
         testimonialsData = await testimonialsResponse.json();
         
         // Load healing facts
-        const factsResponse = await fetch('data/facts.json');
+        const factsResponse = await fetch('facts.json');
         factsData = await factsResponse.json();
         
         // Initialize UI components
