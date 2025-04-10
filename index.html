@@ -1,43 +1,67 @@
-Summary of Your MVP Project Goals
-Your Core Goal
-You're developing a minimal viable product to support Dr. Joe Dispenza's community by leveraging 320 YouTube video transcripts. The purpose is to inspire hope, clarify his methods, and potentially gather donations, all while testing if there's genuine interest before investing more resources.
-MVP Must-Haves for Testing
-Front-End Only (No Registration System)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healing Testimonials</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">Healing Voices</div>
+        <div class="nav-links">
+            <a href="#insights">Insights</a>
+            <a href="#about">About</a>
+            <a href="#donate" class="donate-btn">Donate</a>
+        </div>
+    </nav>
 
-Simple static website with searchable transcript content
-Basic categorization/tagging of transcript content by key concepts
-Mobile-responsive design using free templates
+    <!-- Main Content -->
+    <main>
+        <!-- Testimonial Carousel -->
+        <section class="carousel-container">
+            <div class="carousel-track" id="testimonialCarousel">
+                <!-- Testimonials will be loaded here -->
+            </div>
+            <button class="carousel-btn prev-btn" id="prevBtn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="carousel-btn next-btn" id="nextBtn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </section>
 
-Legal Requirements (Minimal Approach)
+        <!-- Healing Insights Section -->
+        <section class="healing-insights" id="insights">
+            <h2>Healing Insights</h2>
+            <div class="insight-container" id="insightContent">
+                <!-- Insights will be loaded here -->
+            </div>
+        </section>
+    </main>
 
-Simple privacy policy (free template)
-Cookie consent banner (free plugin)
-Clear disclaimer stating unofficial status related to Dr. Dispenza
-Avoid using "Dispenza" in the domain name (chosen: futureself.space)
+    <!-- Video Modal -->
+    <div class="modal" id="videoModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <div class="video-container" id="videoContainer"></div>
+            <div class="voice-tags" id="voiceTags"></div>
+        </div>
+    </div>
 
-Email Collection (Low Friction)
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <h2>About Healing Voices</h2>
+        <p>We collect and share testimonials of healing and recovery to inspire hope and healing in others. Our mission is to amplify voices of resilience and provide insights into various healing journeys.</p>
+    </section>
 
-Simple email capture form (no account creation required)
-Clear consent language specifying occasional updates only
-Free tier email service (MailerLite or Brevo/SendinBlue)
-Privacy-compliant process with easy unsubscribe option
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Healing Voices. All rights reserved.</p>
+    </footer>
 
-Donation Processing
-
-Given your Revolut situation (Portuguese account with Israeli tax registration):
-
-Ko-fi might be your best option (works with multiple payment processors)
-Buy Me a Coffee as an alternative (simple integration)
-
-
-Look for options that integrate well with Revolut Business
-
-Cost Structure
-
-Domain: Cost of futureself.space only
-Hosting: Free tier (GitHub Pages, Netlify, or Vercel)
-Email Collection: Free tier services
-Content Search: Free implementation
-Donation Processing: No monthly fees, only transaction fees when donations occur
-
-This approach lets you test community engagement with minimal upfront investment while maintaining legal compliance and flexibility to scale if the project proves successful.RetryClaude can make mistakes. Please double-check responses.You are out of  
+    <script src="script.js"></script>
+</body>
+</html>
