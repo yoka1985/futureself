@@ -1,67 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healing Testimonials</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hope & Healing</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="logo">Healing Voices</div>
-        <div class="nav-links">
-            <a href="#insights">Insights</a>
-            <a href="#about">About</a>
-            <a href="#donate" class="donate-btn">Donate</a>
-        </div>
-    </nav>
+  <nav>
+    <a href="#insights">Insights</a>
+    <a href="#about">About</a>
+    <a href="#donate" class="donate">Donate</a>
+  </nav>
 
-    <!-- Main Content -->
-    <main>
-        <!-- Testimonial Carousel -->
-        <section class="carousel-container">
-            <div class="carousel-track" id="testimonialCarousel">
-                <!-- Testimonials will be loaded here -->
-            </div>
-            <button class="carousel-btn prev-btn" id="prevBtn">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="carousel-btn next-btn" id="nextBtn">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </section>
+  <section id="carousel-container"></section>
 
-        <!-- Healing Insights Section -->
-        <section class="healing-insights" id="insights">
-            <h2>Healing Insights</h2>
-            <div class="insight-container" id="insightContent">
-                <!-- Insights will be loaded here -->
-            </div>
-        </section>
-    </main>
+  <section id="insights">
+    <h2>Healing Insights</h2>
+    <div id="healing-insight-box"></div>
+  </section>
 
-    <!-- Video Modal -->
-    <div class="modal" id="videoModal">
-        <div class="modal-content">
-            <span class="close-btn" id="closeModal">&times;</span>
-            <div class="video-container" id="videoContainer"></div>
-            <div class="voice-tags" id="voiceTags"></div>
-        </div>
+  <div id="video-modal" class="hidden">
+    <div class="modal-content">
+      <span id="close-modal">&times;</span>
+      <iframe id="video-frame" src="" frameborder="0" allowfullscreen></iframe>
+      <div id="voice-tags"></div>
     </div>
+  </div>
 
-    <!-- About Section -->
-    <section id="about" class="about-section">
-        <h2>About Healing Voices</h2>
-        <p>We collect and share testimonials of healing and recovery to inspire hope and healing in others. Our mission is to amplify voices of resilience and provide insights into various healing journeys.</p>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 Healing Voices. All rights reserved.</p>
-    </footer>
-
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
