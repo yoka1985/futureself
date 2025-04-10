@@ -24,11 +24,5 @@
     Future Self
   </text>
 
-  <text x="175" y="50"
-        font-family="monospace"
-        font-size="10"
-        fill="#666">
-    .space
-  </text>
 </svg>
 
