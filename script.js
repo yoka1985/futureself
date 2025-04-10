@@ -1,50 +1,53 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    // Select elements and immediately check if they exist
-    const carousel = document.getElementById('testimonial-carousel');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+    const filterControls = document.getElementById('filter-controls');
+    const conditionFiltersContainer = document.getElementById('condition-filters');
+    const methodFiltersContainer = document.getElementById('method-filters');
+    const themeFiltersContainer = document.getElementById('theme-filters');
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    const testimonialGrid = document.getElementById('testimonial-grid');
     const healingFactContainer = document.getElementById('healing-fact');
+    const nextInsightBtn = document.getElementById('next-insight-btn');
     const modal = document.getElementById('video-modal');
+    const modalCloseBtn = modal ? modal.querySelector('.close-button') : null;
     const videoIframe = document.getElementById('video-iframe');
     const voiceTagsDisplay = document.getElementById('voice-tags-display');
-
-    // Select modal close button *after* confirming modal exists
-    const modalCloseBtn = modal ? modal.querySelector('.close-button') : null;
-
-    // --- Log Elements for Debugging (Optional) ---
-    // console.log('Carousel Element:', carousel);
-    // console.log('Prev Button Element:', prevBtn);
-    // console.log('Next Button Element:', nextBtn);
-    // console.log('Healing Fact Container:', healingFactContainer);
-    // console.log('Modal Element:', modal);
-    // console.log('Modal Close Button:', modalCloseBtn);
-    // console.log('Video Iframe:', videoIframe);
-    // console.log('Voice Tags Display:', voiceTagsDisplay);
+    // New modal content elements
+    const modalTitle = document.getElementById('modal-title');
+    const modalConditions = document.getElementById('modal-conditions');
+    const modalMethods = document.getElementById('modal-methods');
+    const modalOutcomes = document.getElementById('modal-outcomes');
+    const modalMoment = document.getElementById('modal-moment');
+    const modalQuotes = document.getElementById('modal-quotes');
 
     // --- Check if Essential Elements Exist ---
-    if (!carousel || !healingFactContainer || !modal || !modalCloseBtn || !videoIframe || !voiceTagsDisplay) {
+    // Add checks for new elements as well
+    if (!filterControls || !conditionFiltersContainer || !methodFiltersContainer || !themeFiltersContainer || !clearFiltersBtn || !testimonialGrid || !healingFactContainer || !nextInsightBtn || !modal || !modalCloseBtn || !videoIframe || !voiceTagsDisplay || !modalTitle || !modalConditions || !modalMethods || !modalOutcomes || !modalMoment || !modalQuotes) {
         console.error('Essential UI elements not found! Check HTML IDs and structure.');
-        // Optionally display a user-friendly error message on the page
-        // document.body.innerHTML = '<h1>Error loading page content. Please try again later.</h1>';
-        return; // Stop script execution if critical elements are missing
+        if (testimonialGrid) testimonialGrid.innerHTML = '<p class="error-message">Error loading page structure. Please try again later.</p>';
+        return; // Stop script execution
     }
-     // Hide buttons initially, show them later only if needed
-     if (prevBtn) prevBtn.style.display = 'none';
-     if (nextBtn) nextBtn.style.display = 'none';
-
 
     // --- State Variables ---
-    let testimonialsData = [];
+    let testimonialsData = []; // Holds the original full dataset
     let factsData = { healing_insights: [] };
-    let currentSlideIndex = 0;
     let currentFactIndex = 0;
-    let factIntervalId = null;
-
-    const FACT_ROTATION_INTERVAL = 900000; // 15 minutes
+    let activeFilters = {
+        condition: null,
+        method: null,
+        theme: null
+    };
 
     // --- Fetch Data ---
     function fetchData() {
+        // Clear placeholders initially
+        testimonialGrid.innerHTML = '<p class="placeholder">Loading testimonials...</p>';
+        healingFactContainer.innerHTML = '<p class="placeholder">Loading insights...</p>';
+        conditionFiltersContainer.innerHTML = '<span class="placeholder">Loading filters...</span>';
+        methodFiltersContainer.innerHTML = ''; // Clear other filter placeholders too
+        themeFiltersContainer.innerHTML = '';
+
+
         const testimonialsPromise = fetch('final_db_clustered_tagged_cleaned.json')
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -52,10 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error fetching testimonials:', error);
-                if (carousel) { // Check if carousel exists before modifying
-                     carousel.innerHTML = '<p class="error-message">Could not load testimonials.</p>';
-                }
-                return [];
+                if (testimonialGrid) testimonialGrid.innerHTML = '<p class="error-message">Could not load testimonials.</p>';
+                return []; // Return empty array on error
             });
 
         const factsPromise = fetch('facts.json')
@@ -65,10 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error fetching facts:', error);
-                 if (healingFactContainer) { // Check if container exists
-                    healingFactContainer.innerHTML = '<p class="error-message">Could not load insights.</p>';
-                 }
-                return { healing_insights: [] };
+                if (healingFactContainer) healingFactContainer.innerHTML = '<p class="error-message">Could not load insights.</p>';
+                return { healing_insights: [] }; // Return object with empty array on error
             });
 
         Promise.all([testimonialsPromise, factsPromise])
@@ -76,117 +75,189 @@ document.addEventListener('DOMContentLoaded', () => {
                 testimonialsData = testimonials;
                 factsData = facts;
 
-                // Initialize UI *only if elements exist*
-                if (carousel && testimonialsData.length > 0) {
-                    createCarouselSlides();
-                    showSlide(currentSlideIndex);
-                } else if (carousel && !carousel.querySelector('.error-message')) {
-                    carousel.innerHTML = '<p>No testimonials available.</p>';
+                // Initialize UI only after data is loaded and elements exist
+                if (testimonialsData.length > 0) {
+                    populateFilters();
+                    renderTestimonialGrid(testimonialsData); // Render all initially
+                } else if (!testimonialGrid.querySelector('.error-message')) {
+                    testimonialGrid.innerHTML = '<p>No testimonials available.</p>';
                 }
 
-                if (healingFactContainer && factsData.healing_insights.length > 0) {
-                    displayFact(currentFactIndex);
-                    startFactRotation();
-                } else if (healingFactContainer && !healingFactContainer.querySelector('.error-message')) {
+                if (factsData.healing_insights.length > 0) {
+                    displayFact(currentFactIndex); // Display the first fact
+                } else if (!healingFactContainer.querySelector('.error-message')) {
                     healingFactContainer.innerHTML = '<p>No insights available.</p>';
                 }
             });
     }
 
-    // --- Carousel Logic ---
-    function createCarouselSlides() {
-        if (!carousel) return; // Guard clause
-        carousel.innerHTML = ''; // Clear placeholder
+    // --- Filter Logic ---
 
-        testimonialsData.forEach((item, index) => {
-            const slide = document.createElement('div');
-            slide.className = 'carousel-slide';
-            slide.setAttribute('data-index', index);
+    // Helper to get unique, flattened, non-empty values from data for a specific key
+    function getUniqueFilterValues(data, key) {
+        const allValues = data.flatMap(item => item[key] || []); // Flatten arrays, handle missing keys
+        return [...new Set(allValues)].filter(value => value); // Get unique, remove empty values
+    }
 
-            const img = document.createElement('img');
-            img.src = item.thumbnail_url;
-            img.alt = item.title || 'Testimonial thumbnail';
-            img.loading = 'lazy';
-            img.dataset.videoUrl = item.url;
-            img.dataset.voiceTags = (item.voice_tags || []).join(' | ');
-            img.addEventListener('click', handleImageClick); // Add listener here
+    function populateFilters() {
+        const uniqueConditions = getUniqueFilterValues(testimonialsData, 'conditions');
+        const uniqueMethods = getUniqueFilterValues(testimonialsData, 'methods').map(m => m.name); // Assuming methods is array of objects
+        const uniqueThemes = getUniqueFilterValues(testimonialsData, 'theme');
 
-            const quote = document.createElement('p');
-            quote.className = 'quote';
-            quote.textContent = (item.hope_driven_quotes && item.hope_driven_quotes[0])
-                                ? `"${item.hope_driven_quotes[0]}"`
-                                : "An inspiring journey.";
+        // Clear placeholders
+        conditionFiltersContainer.innerHTML = '';
+        methodFiltersContainer.innerHTML = '';
+        themeFiltersContainer.innerHTML = '';
 
-            slide.appendChild(img);
-            slide.appendChild(quote);
-            carousel.appendChild(slide); // This is safe now because we checked 'carousel'
-        });
 
-        // Show/hide buttons based on slide count (check if buttons exist first)
-        if (testimonialsData.length > 1) {
-           if (prevBtn) prevBtn.style.display = 'block';
-           if (nextBtn) nextBtn.style.display = 'block';
-        } else {
-           if (prevBtn) prevBtn.style.display = 'none';
-           if (nextBtn) nextBtn.style.display = 'none';
+        createFilterButtons(uniqueConditions, conditionFiltersContainer, 'condition');
+        createFilterButtons(uniqueMethods, methodFiltersContainer, 'method');
+        createFilterButtons(uniqueThemes, themeFiltersContainer, 'theme');
+    }
+
+    function createFilterButtons(values, container, filterType) {
+         if (values.length === 0) {
+            container.innerHTML = '<span class="placeholder">N/A</span>'; // Indicate if no filters for type
+            return;
         }
-    }
-
-    function showSlide(index) {
-        if (!carousel) return; // Guard clause
-        const slides = carousel.querySelectorAll('.carousel-slide');
-        if (!slides || slides.length === 0) return;
-
-        const numSlides = slides.length;
-        currentSlideIndex = ((index % numSlides) + numSlides) % numSlides;
-
-        slides.forEach((slide, i) => {
-            slide.classList.toggle('active', i === currentSlideIndex); // More concise way to toggle active class
+        values.sort().forEach(value => {
+            const button = document.createElement('button');
+            button.textContent = value;
+            button.dataset.filterType = filterType;
+            button.dataset.filterValue = value;
+            button.addEventListener('click', handleFilterClick);
+            container.appendChild(button);
         });
     }
 
-    function nextSlide() {
-        showSlide(currentSlideIndex + 1);
+    function handleFilterClick(event) {
+        const button = event.target;
+        const filterType = button.dataset.filterType;
+        const filterValue = button.dataset.filterValue;
+
+        // Toggle active state for the clicked button within its group
+        const filterGroupContainer = button.parentElement;
+        const currentlyActive = filterGroupContainer.querySelector('button.active');
+
+        if (currentlyActive && currentlyActive === button) {
+            // Deactivate if clicking the already active button
+            button.classList.remove('active');
+            activeFilters[filterType] = null;
+        } else {
+            // Deactivate previous button in the group
+            if (currentlyActive) {
+                currentlyActive.classList.remove('active');
+            }
+            // Activate the clicked button
+            button.classList.add('active');
+            activeFilters[filterType] = filterValue;
+        }
+
+
+        filterAndRenderGrid();
     }
 
-    function prevSlide() {
-        showSlide(currentSlideIndex - 1);
+    clearFiltersBtn.addEventListener('click', () => {
+        activeFilters = { condition: null, method: null, theme: null };
+        // Remove active class from all filter buttons
+        document.querySelectorAll('#filter-controls button.active').forEach(btn => btn.classList.remove('active'));
+        renderTestimonialGrid(testimonialsData); // Re-render full grid
+    });
+
+    function filterAndRenderGrid() {
+        const filteredData = testimonialsData.filter(item => {
+            const conditionMatch = !activeFilters.condition || (Array.isArray(item.conditions) && item.conditions.includes(activeFilters.condition));
+            // Adjust method match if methods is array of objects
+            const methodMatch = !activeFilters.method || (Array.isArray(item.methods) && item.methods.some(m => m.name === activeFilters.method));
+            const themeMatch = !activeFilters.theme || (Array.isArray(item.theme) && item.theme.includes(activeFilters.theme));
+
+            return conditionMatch && methodMatch && themeMatch;
+        });
+        renderTestimonialGrid(filteredData);
+    }
+
+
+    // --- Grid Rendering ---
+    function renderTestimonialGrid(dataToRender) {
+        testimonialGrid.innerHTML = ''; // Clear previous grid
+
+        if (dataToRender.length === 0) {
+            testimonialGrid.innerHTML = '<p class="placeholder">No testimonials match the current filters.</p>';
+            return;
+        }
+
+        dataToRender.forEach(item => {
+             // Find the original index of the item in the full testimonialsData array
+             // This is important for retrieving the full data for the modal later
+             const originalIndex = testimonialsData.findIndex(originalItem => originalItem.url === item.url); // Assuming URL is a unique identifier
+
+             if (originalIndex === -1) {
+                 console.warn("Could not find original index for item:", item);
+                 return; // Skip if we can't find the original item
+             }
+
+            const card = document.createElement('div');
+            card.className = 'testimonial-card';
+            // Store the ORIGINAL index in the data attribute
+            card.dataset.index = originalIndex;
+
+            // Handle potential missing data with fallbacks
+            const imageUrl = item.thumbnail_url || 'https://placehold.co/300x180/eee/ccc?text=No+Image';
+            const title = item.title || 'Untitled Testimonial';
+            const conditions = Array.isArray(item.conditions) ? item.conditions.join(', ') : 'N/A';
+            const theme = Array.isArray(item.theme) ? item.theme.join(', ') : 'N/A';
+
+            card.innerHTML = `
+                <img src="${imageUrl}" alt="${title}" loading="lazy">
+                <h4>${title}</h4>
+                <p><strong>Condition:</strong> ${conditions}</p>
+                <p><strong>Theme:</strong> ${theme}</p>
+            `;
+
+            card.addEventListener('click', () => handleCardClick(originalIndex)); // Pass original index
+            testimonialGrid.appendChild(card);
+        });
     }
 
     // --- Modal Logic ---
-    function handleImageClick(event) {
-        // We already checked modal, videoIframe, voiceTagsDisplay exist
-        const img = event.target;
-        const videoUrl = img.dataset.videoUrl;
-        const voiceTags = img.dataset.voiceTags;
+    function handleCardClick(index) {
+        // Retrieve the full data using the original index
+        const testimonial = testimonialsData[index];
+        if (!testimonial) {
+            console.error(`Testimonial data not found for index: ${index}`);
+            return;
+        }
 
-        if (videoUrl) {
-            let embedUrl = videoUrl; // Basic assumption
-             // Basic YouTube URL to Embed URL conversion (adjust if needed)
-            try {
-                 if (videoUrl.includes("youtube.com/watch?v=")) {
-                    const urlParams = new URLSearchParams(new URL(videoUrl).search);
+        // Populate Modal Title
+        modalTitle.textContent = testimonial.title || 'Testimonial Details';
+
+        // Populate Video
+        if (testimonial.url) {
+             let embedUrl = testimonial.url; // Assume it might be embeddable
+              try {
+                 if (testimonial.url.includes("youtube.com/watch")) {
+                    const urlParams = new URLSearchParams(new URL(testimonial.url).search);
                     const videoId = urlParams.get('v');
                     if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                } else if (videoUrl.includes("youtu.be/")) {
-                    const pathSegments = new URL(videoUrl).pathname.split('/');
+                } else if (testimonial.url.includes("youtu.be/")) {
+                    const pathSegments = new URL(testimonial.url).pathname.split('/');
                     const videoId = pathSegments[pathSegments.length - 1];
                      if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
                 }
+                 // Add more platform checks if needed (Vimeo, etc.)
             } catch (e) {
                 console.error("Error parsing video URL:", e);
-                // Keep embedUrl as the original videoUrl if parsing fails
+                 // Keep embedUrl as the original videoUrl if parsing fails
             }
             videoIframe.src = embedUrl;
         } else {
-            videoIframe.src = '';
-            console.warn("No video URL found for this testimonial image.");
+            videoIframe.src = ''; // Clear src if no URL
         }
 
-        voiceTagsDisplay.innerHTML = ''; // Clear previous tags
-        if (voiceTags) {
-            const tagsArray = voiceTags.split(' | ');
-            tagsArray.forEach(tag => {
+        // Populate Voice Tags
+        voiceTagsDisplay.innerHTML = ''; // Clear previous
+        if (Array.isArray(testimonial.voice_tags) && testimonial.voice_tags.length > 0) {
+            testimonial.voice_tags.forEach(tag => {
                 if (tag.trim()) {
                     const tagElement = document.createElement('span');
                     tagElement.textContent = tag.trim();
@@ -197,11 +268,70 @@ document.addEventListener('DOMContentLoaded', () => {
             voiceTagsDisplay.innerHTML = '<span>No voice tags available</span>';
         }
 
+        // Populate Additional Context
+        modalConditions.textContent = Array.isArray(testimonial.conditions) ? testimonial.conditions.join(', ') : 'N/A';
+        modalMoment.textContent = testimonial.most_inspiring_moment || 'N/A';
+
+        // Populate Methods (assuming array of objects {name: '', ...})
+        modalMethods.innerHTML = '<h4>Methods Used:</h4>'; // Add title
+        const methodsList = document.createElement('ul');
+        if (Array.isArray(testimonial.methods) && testimonial.methods.length > 0) {
+            testimonial.methods.forEach(method => {
+                const li = document.createElement('li');
+                // Display method name and potentially other details like efficacy
+                li.textContent = `${method.name || 'Unnamed Method'}${method.efficacy_score ? ` (Efficacy: ${method.efficacy_score}/10)` : ''}`;
+                methodsList.appendChild(li);
+            });
+        } else {
+            methodsList.innerHTML = '<li>N/A</li>';
+        }
+        modalMethods.appendChild(methodsList);
+
+
+        // Populate Outcomes (assuming object {physical: '', emotional: ''})
+        modalOutcomes.innerHTML = '<h4>Outcomes:</h4>'; // Reset and add title
+         const outcomesList = document.createElement('ul');
+         let outcomesFound = false;
+         if (testimonial.method_outcomes) {
+             if(testimonial.method_outcomes.physical) {
+                 const li = document.createElement('li');
+                 li.innerHTML = `<strong>Physical:</strong> ${testimonial.method_outcomes.physical}`;
+                 outcomesList.appendChild(li);
+                 outcomesFound = true;
+             }
+              if(testimonial.method_outcomes.emotional) {
+                 const li = document.createElement('li');
+                 li.innerHTML = `<strong>Emotional:</strong> ${testimonial.method_outcomes.emotional}`;
+                 outcomesList.appendChild(li);
+                 outcomesFound = true;
+             }
+         }
+         if (!outcomesFound) {
+              outcomesList.innerHTML = '<li>N/A</li>';
+         }
+         modalOutcomes.appendChild(outcomesList);
+
+
+        // Populate Hope Quotes
+        modalQuotes.innerHTML = '<h4>Hope Driven Quotes:</h4>'; // Reset and add title
+        const quotesList = document.createElement('ul');
+        if (Array.isArray(testimonial.hope_driven_quotes) && testimonial.hope_driven_quotes.length > 0) {
+            testimonial.hope_driven_quotes.forEach(quote => {
+                const li = document.createElement('li');
+                li.textContent = `"${quote}"`;
+                quotesList.appendChild(li);
+            });
+        } else {
+            quotesList.innerHTML = '<li>N/A</li>';
+        }
+        modalQuotes.appendChild(quotesList);
+
+        // Display Modal
         modal.style.display = 'flex';
     }
 
     function closeModal() {
-        if (!modal || !videoIframe) return; // Guard clause
+        if (!modal || !videoIframe) return;
         modal.style.display = 'none';
         videoIframe.src = ''; // Stop video
     }
@@ -218,52 +348,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const safeIndex = index % factsData.healing_insights.length;
         const fact = factsData.healing_insights[safeIndex];
 
+        // Use textContent for security unless HTML is intended
         healingFactContainer.innerHTML = `
             <h3>${fact.title || 'Insight'}</h3>
             ${fact.stat ? `<p class="fact-stat">${fact.stat}</p>` : ''}
             ${fact.quote ? `<p class="fact-quote">"${fact.quote}"</p>` : ''}
             ${fact.action ? `<p class="fact-action">${fact.action}</p>` : ''}
         `;
+        // Optional: Visual feedback on change
         healingFactContainer.style.backgroundColor = '#dcedc8';
         setTimeout(() => {
             if (healingFactContainer) healingFactContainer.style.backgroundColor = '#fff';
-        }, 500);
+        }, 300);
     }
 
-    function rotateFact() {
-        if (!factsData.healing_insights || factsData.healing_insights.length === 0) return;
-        currentFactIndex = (currentFactIndex + 1) % factsData.healing_insights.length;
-        displayFact(currentFactIndex);
+    // --- Event Listeners ---
+    if (nextInsightBtn) {
+        nextInsightBtn.addEventListener('click', () => {
+             if (!factsData.healing_insights || factsData.healing_insights.length === 0) return;
+             currentFactIndex = (currentFactIndex + 1) % factsData.healing_insights.length;
+             displayFact(currentFactIndex);
+        });
     }
 
-    function startFactRotation() {
-        if (factIntervalId) clearInterval(factIntervalId);
-        if (factsData.healing_insights && factsData.healing_insights.length > 1) {
-            factIntervalId = setInterval(rotateFact, FACT_ROTATION_INTERVAL);
-        }
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+
+    // Close modal on background click
+    if (modal) {
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
     }
 
-    // --- Event Listeners (Attach only if elements exist) ---
-    if (prevBtn) prevBtn.addEventListener('click', prevSlide);
-    if (nextBtn) nextBtn.addEventListener('click', nextSlide);
-    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal); // Safe now
-
-    // Modal background click listener (safe because we checked 'modal')
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
-
-    // Escape key listener
+    // Close modal with Escape key
     document.addEventListener('keydown', (event) => {
-        // Check modal exists and is displayed before closing
         if (event.key === 'Escape' && modal && modal.style.display === 'flex') {
             closeModal();
         }
     });
 
     // --- Initialization ---
-    fetchData(); // Start fetching data
+    fetchData(); // Start the process
 
 }); // End DOMContentLoaded
+
