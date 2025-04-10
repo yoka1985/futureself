@@ -13,21 +13,16 @@
     <a href="#donate" class="donate">Donate</a>
   </nav>
 
-  <section id="carousel-container"></section>
+<!-- Thumbnail in carousel -->
+<img src="thumbnail.jpg" onclick="openVideo('https://your-video-url.mp4')" class="cursor-pointer w-40">
 
-  <section id="insights">
-    <h2>Healing Insights</h2>
-    <div id="healing-insight-box"></div>
-  </section>
+<!-- Video Modal -->
+<div id="videoModal" onclick="closeVideo()" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
+  <video id="videoPlayer" controls autoplay class="max-w-full max-h-full"></video>
+</div>
 
-  <div id="video-modal" class="hidden">
-    <div class="modal-content">
-      <span id="close-modal">&times;</span>
-      <iframe id="video-frame" src="" frameborder="0" allowfullscreen></iframe>
-      <div id="voice-tags"></div>
-    </div>
-  </div>
+<!-- JS reference -->
+<script src="video-modal.js"></script>
 
-  <script src="script.js"></script>
 </body>
 </html>
