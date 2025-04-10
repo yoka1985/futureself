@@ -55,4 +55,23 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.add("hidden");
     videoFrame.src = "";
   };
+function openVideo(src) {
+  const modal = document.getElementById("videoModal");
+  const video = document.getElementById("videoPlayer");
+
+  video.src = src;
+  modal.classList.remove("hidden");
+}
+
+function closeVideo() {
+  const modal = document.getElementById("videoModal");
+  const video = document.getElementById("videoPlayer");
+
+  modal.classList.add("hidden");
+  video.pause();
+  video.src = ""; // Unload video
+}
+
+
+  
 });
