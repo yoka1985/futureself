@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healing Journeys</title>
+    <title>Healing Journeys - Stories & Insights</title>
     <link rel="stylesheet" href="styles.css">
-</head>
+    </head>
 <body>
 
     <nav class="navbar">
         <div class="nav-container">
-            <a href="#carousel-section" class="nav-logo">Healing Journeys</a>
+            <a href="#" class="nav-logo">Healing Journeys</a>
             <ul class="nav-menu">
+                <li class="nav-item"><a href="#testimonial-section" class="nav-link">Stories</a></li>
                 <li class="nav-item"><a href="#insights-section" class="nav-link">Insights</a></li>
                 <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
                 <li class="nav-item"><a href="#" class="nav-link donate-button">Donate</a></li>
@@ -19,25 +20,46 @@
         </div>
     </nav>
 
-    <section id="carousel-section" class="carousel-container">
+    <section id="testimonial-section" class="testimonial-container">
         <h2>Inspiring Stories</h2>
-        <div id="testimonial-carousel" class="carousel">
-            <div class="carousel-placeholder">Loading testimonials...</div>
+
+        <div id="filter-controls">
+            <div class="filter-group">
+                <h4>Filter by Condition:</h4>
+                <div id="condition-filters" class="filter-buttons">
+                    <span class="placeholder">Loading filters...</span>
+                </div>
+            </div>
+            <div class="filter-group">
+                <h4>Filter by Method:</h4>
+                <div id="method-filters" class="filter-buttons">
+                    </div>
+            </div>
+             <div class="filter-group">
+                <h4>Filter by Theme:</h4>
+                <div id="theme-filters" class="filter-buttons">
+                    </div>
+            </div>
+            <button id="clear-filters-btn" class="clear-button">Clear All Filters</button>
         </div>
-        <button id="prev-btn" class="carousel-btn prev" aria-label="Previous Testimonial">&lt;</button>
-        <button id="next-btn" class="carousel-btn next" aria-label="Next Testimonial">&gt;</button>
+
+        <div id="testimonial-grid" class="grid-container">
+            <p class="placeholder">Loading testimonials...</p>
+        </div>
     </section>
 
     <section id="insights-section" class="insights-container">
         <h2>Healing Insights</h2>
         <div id="healing-fact" class="fact-card">
-            <p>Loading insights...</p>
+            <p class="placeholder">Loading insights...</p>
         </div>
+        <button id="next-insight-btn" class="insight-button">Show Another Insight</button>
     </section>
 
     <div id="video-modal" class="modal">
         <div class="modal-content">
-            <span class="close-button" aria-label="Close modal">&times;</span>
+            <span class="close-button" aria-label="Close modal">×</span>
+            <h3 id="modal-title"></h3>
             <div class="video-wrapper">
                  <iframe id="video-iframe"
                     width="560" height="315"
@@ -48,8 +70,22 @@
                     allowfullscreen>
                 </iframe>
             </div>
-            <div id="voice-tags-display" class="voice-tags">
+             <div id="voice-tags-display" class="voice-tags">
                 </div>
+            <hr class="modal-divider">
+            <div class="modal-details">
+                <h4>Details:</h4>
+                <p><strong>Condition(s):</strong> <span id="modal-conditions"></span></p>
+                <div id="modal-methods">
+                    </div>
+                 <div id="modal-outcomes">
+                    <h4>Outcomes:</h4>
+                    </div>
+                <p><strong>Most Inspiring Moment:</strong> <span id="modal-moment"></span></p>
+                <div id="modal-quotes">
+                    <h4>Hope Driven Quotes:</h4>
+                    </div>
+            </div>
         </div>
     </div>
 
