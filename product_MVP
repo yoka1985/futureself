@@ -1,0 +1,24 @@
+
+8/12 summary:
+You’re developing an MVP to empower Dr. Joe Dispenza’s community by leveraging 320 YouTube video transcripts, aiming to inspire hope, clarify his methods, and drive donations. Initially, you scraped metadata (`videos.json`)—titles, URLs, views, likes—and paired it with raw transcripts (`transcripts_rich.json.320of370.temp`), which include `"full_text"` and `"segments"` with sentiment and voice features. You merged these into `unified_data.json`, adding derived fields like `"likes_per_view_ratio"`, `"overall_mean_sentiment"`, and `"sentiment_hope_score"` (boosted by keywords like “heal”), plus averaged voice features, to quantify hope and engagement. Now, you’re processing this with GPT-3.5-turbo via `test_llm_openai.py`, extracting structured data—gender (from text, not voice), conditions (e.g., “MS”), methods with durations (e.g., “meditation - 12 months”), discrete 1-10 scores, 5+ word hope-driven quotes (e.g., “I finally embraced boundless peace”), and unique fields like “What Doctors Said” (e.g., “You’ll be in a wheelchair”), “What Kept Me Going” (e.g., “Family support”), and “Unexpected Breakthrough” (e.g., “Heart suddenly burst with joy”). Three front-end features define the MVP: "Meditation Match Finder" (filters methods by condition, e.g., “Daily Meditation, 8.7/10 for anxiety”), "Healing Spotlight" (rotates stories with quotes and outcomes, e.g., “No anxiety, MS halted”), and "Community Insights" (updates every 3 days with stats like “60% defied grim predictions”). You’re debugging persistent JSON errors (`'"gender"'`), refining prompts, and logging raw API responses to fix output parsing. The goal: a no-backend, GitHub Pages-hosted app by April 8, 2025, costing ~$0.17 for 320 transcripts. Next steps: normalize conditions and durations, then launch to hook Joe’s followers with emotional resonance and practical clarity.
+
+
+
+
+
+
+
+product:
+
+ Start with a small, high-impact batch (e.g., 10-20 transcribed videos) on a simple site. Highlight hope-driven quotes to hook users and prompt donations.
+
+Use free hosting (e.g., GitHub Pages) and raw transcripts initially. Authentic, unfiltered healing stories can drive organic growth and donations.
+
+Prioritize transcript content over UI polish. A “donate to unlock more” button can test willingness to pay without a backend.
+
+Structure transcripts into conditions/methods early (via LLM). A forum-style MVP could test engagement before a full app.
+
+Leverage Dispenza’s community to refine transcripts or suggest videos. A wiki-like MVP could offload some structuring work.
+
+==  REDDIT
+
