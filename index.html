@@ -24,7 +24,7 @@
             <ul class="nav-menu">
                 <li class="nav-item"><a href="#testimonial-section" class="nav-link">Stories</a></li>
                 <li class="nav-item"><a href="#insights-section" class="nav-link">Insights</a></li>
-                <li class="nav-item"><a href="#about-project" class="nav-link">About</a></li>
+                <li class="nav-item"><a href="about.html" class="nav-link">About</a></li>
                  <li class="nav-item">
                     <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="nav-link donate-button">
                         🌿 Support This Project
@@ -36,6 +36,9 @@
 
     <section id="testimonial-section" class="content-section testimonial-container">
         <h2>Inspiring Stories</h2>
+        <p class="intro-text" style="text-align: center; margin-bottom: 2em; font-size: 1.1em; color: #ccc;">
+            Dispenza Community Stories: Filter for Hope.💖
+        </p>
 
         <div id="filter-controls">
             <div class="filter-group">
@@ -69,52 +72,6 @@
         </div>
         <button id="next-insight-btn" class="insight-button">Show Another Insight</button>
     </section>
-
-    <section id="about-project" class="content-section about-section">
-        <h2>About This Project</h2>
-
-        <h3>From Me:</h3>
-        <p>I built this project as a gift for my 40th birthday—not just to myself, but to a wider circle of people seeking hope and healing.</p>
-        <p>After two years of volunteering and deep personal work inspired by Joe Dispenza’s teachings, I created this site to make those insights easier to access and act on. I drew from my background in data science, voice processing, and a personal need to find light—and offer it.</p>
-        <p>This isn’t a startup. It’s a soul project.</p>
-        <p>If the community finds it useful and I’m able to sustain myself, I’ll keep going—adding deeper insights, heavier data processing, and clearer pathways for patients to reclaim their power. If not, I’ll listen and let it go. Either way, it’s hand-in-hand.</p>
-        <p>If you find value here and want to help fuel the next steps, donations are welcome.</p>
-
-        <h3>The Process (What I Did):</h3>
-        <ol>
-            <li><strong>Starting Point: Raw Data Collection</strong><br>
-                Began with a raw dataset (<code>final_db.json</code>) containing 320 testimonials, likely from Dr. Joe Dispenza’s YouTube videos. Included fields like title, url, conditions, and methods.</li>
-            <li><strong>Voice Processing and Data Refinement</strong><br>
-                Processed audio from videos to extract spoken content. Identified key phrases for <code>hope_driven_quotes</code>. Added <code>overall_mean_sentiment</code> and <code>sentiment_hope_score</code> using NLP models. Extracted <code>method_outcomes</code> and <code>most_inspiring_moment</code>.</li>
-            <li><strong>Voice Tag Generation</strong><br>
-                Derived <code>voice_tags</code> (e.g., "🌿 Calm", "🔥 Intense") from vocal tone, pacing, or emotion using audio analysis (prosody) and potentially manual curation to add an emotional layer to stories.</li>
-            <li><strong>Data Normalization and Clustering</strong><br>
-                Cleaned up condition/method names using fuzzy matching (e.g., "thyroid issues" + "hypothyroidism" → "thyroid condition"). Reduced ~260 conditions to ~180 and ~118 methods to ~60. Initially clustered conditions and methods, later simplifying for the final database.</li>
-            <li><strong>Evolution to Final DB</strong><br>
-                Combined raw data, voice-derived fields, normalized data, and clustering results into the cleaned <code>final_db_clustered_tagged_cleaned.json</code> used by this site. Flattened condition clusters into a simple array.</li>
-            <li><strong>Facts Generation (<code>facts.json</code>)</strong><br>
-                Analyzed testimonials for aggregate stats (e.g., remission rates), extracted relevant quotes, suggested actions, and added tags to create the curated "Healing Insights" rotated on the site.</li>
-        </ol>
-    </section>
-
-    <section id="understanding-site" class="content-section about-section">
-        <h2>Understanding the Site & Data</h2>
-
-        <h3>Voice Tags (e.g., 🌿 Calm, 🔥 Intense)</h3>
-        <p>These tags attempt to capture the speaker's vocal delivery style during the testimonial. They are derived automatically from analyzing the audio's tone, speed, and emotional cues, sometimes refined manually. They add an extra layer to help you connect with the feeling behind the story.</p>
-
-        <h3>Sentiment Scores</h3>
-        <p>You might see references to sentiment scores in the underlying data description. These were calculated using Natural Language Processing (NLP) models to get a general sense of the positivity (<code>overall_mean_sentiment</code>) and hopefulness (<code>sentiment_hope_score</code>) expressed in the testimonial transcripts.</p>
-
-        <h3>Data Cleaning & Normalization</h3>
-        <p>Conditions and methods mentioned in testimonials can be described in many ways. Efforts were made to group similar terms (like "hypothyroidism" and "thyroid issues" into "thyroid condition") using automated techniques (fuzzy matching) to make filtering more effective.</p>
-
-        <h3>Healing Insights</h3>
-        <p>The insights shown are derived from analyzing trends and specific statements across multiple testimonials in the dataset, combined with relevant quotes and suggested actions.</p>
-
-        <p><em>Note: This project involves interpretation and automated analysis. While efforts were made for accuracy, always refer to original sources and consult healthcare professionals for medical advice.</em></p>
-    </section>
-
 
     <div id="video-modal" class="modal">
         <div class="modal-content">
@@ -151,7 +108,10 @@
 
     <footer class="site-footer">
         <p>© 2025 Future Self</p>
-        </footer>
+        <p class="footer-links">
+            <a href="#">Privacy Policy</a> | <a href="#">Terms of Use</a>
+            </p>
+    </footer>
 
     <script src="script.js"></script>
 </body>
