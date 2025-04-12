@@ -123,20 +123,22 @@ a:hover {
     list-style: none;
     display: flex;
     align-items: center;
+    flex-wrap: wrap; /* Allow wrapping */
 }
 
 .nav-item {
-    margin-left: 20px; /* Slightly reduced spacing */
+    margin-left: 15px; /* Adjusted spacing */
 }
 
 .nav-link {
     color: #e0e0e0; /* Lighter link color */
     text-decoration: none;
-    padding: 6px 12px; /* Reduced padding */
+    padding: 6px 10px; /* Further reduced padding */
     transition: color 0.3s ease, background-color 0.3s ease;
     font-weight: 500;
     border-radius: 4px;
-    font-size: 0.95rem; /* Slightly smaller font */
+    font-size: 0.9rem; /* Slightly smaller */
+    white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -148,10 +150,10 @@ a:hover {
     background-color: #FF9800;
     color: #111 !important; /* Dark text on orange button */
     font-weight: bold;
-    padding: 6px 15px; /* Reduced padding */
+    padding: 6px 12px; /* Adjusted padding */
     transition: background-color 0.3s ease, transform 0.2s ease;
     display: inline-block; /* Ensure padding works */
-    font-size: 0.9rem; /* Slightly smaller font */
+    font-size: 0.85rem; /* Adjusted font size */
 }
 .donate-button:hover {
     background-color: #fb8c00; /* Slightly darker orange */
@@ -171,14 +173,20 @@ a:hover {
 
 .filter-group { margin-bottom: 10px; }
 
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap */
+    gap: 6px; /* Use gap for spacing */
+    margin-bottom: 5px;
+}
+
 .filter-buttons button {
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #e0e0e0; /* Light text */
     border-radius: 15px;
     padding: 5px 10px; /* Reduced padding */
-    margin-right: 6px;
-    margin-bottom: 6px;
+    /* margin-right: 6px; margin-bottom: 6px; */ /* Replaced by gap */
     cursor: pointer;
     font-size: 0.85rem; /* Smaller font */
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
@@ -186,6 +194,7 @@ a:hover {
 
 .filter-buttons button:hover { background-color: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.4); color: #fff; }
 .filter-buttons button.active { background-color: #4CAF50; /* Keep green for active */ color: white; font-weight: bold; border-color: #4CAF50; }
+.filter-buttons button.filter-button-hidden { display: none; } /* Class to hide extra filters */
 
 .clear-button {
     background-color: #f44336; color: white; border: none; border-radius: 5px;
@@ -193,6 +202,22 @@ a:hover {
     cursor: pointer; font-size: 0.85rem; transition: background-color 0.3s ease; margin-top: 10px;
 }
 .clear-button:hover { background-color: #d32f2f; }
+
+/* Show More Filters Button */
+.show-more-filters {
+    background: none;
+    border: none;
+    color: #90caf9; /* Link color */
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 5px 0; /* Minimal padding */
+    margin-top: 5px; /* Space above */
+    display: block; /* Make it block for positioning */
+    width: auto; /* Allow natural width */
+    text-align: left; /* Align text left */
+}
+.show-more-filters:hover { color: #bbdefb; }
 
 
 /* Testimonial Grid */
@@ -237,12 +262,15 @@ a:hover {
     justify-content: space-between; /* Pushes tags down if quote is short */
     min-height: 90px; /* Min height for content area */
 }
+/* UPDATED: Card Quote Styling */
 .card-quote {
     font-style: italic;
-    color: #ccc;
-    font-size: 0.9rem;
-    line-height: 1.4;
+    color: #d0d0d0; /* Slightly brighter */
+    font-size: 0.95rem; /* Slightly larger */
+    line-height: 1.45;
     margin-bottom: 10px;
+    padding-left: 10px; /* Indent */
+    border-left: 3px solid #4CAF50; /* Add theme color border */
     /* Limit lines shown */
     display: -webkit-box;
     -webkit-line-clamp: 2; /* Show max 2 lines */
@@ -268,7 +296,7 @@ a:hover {
     white-space: nowrap; /* Ensure tag itself doesn't wrap */
 }
 
-/* Show More Button */
+/* Show More Stories Button */
 .show-more-container {
     text-align: center;
     margin-top: 30px;
@@ -369,6 +397,15 @@ a:hover {
 #modal-methods li, #modal-outcomes li { background-color: rgba(255, 255, 255, 0.05); padding: 8px 12px; margin-bottom: 6px; border-radius: 4px; font-size: 0.9rem; border: 1px solid rgba(255, 255, 255, 0.1); }
 #modal-quotes li { font-style: italic; border-left: 3px solid #4CAF50; padding-left: 10px; background-color: transparent; border-radius: 0; border-top: none; border-right: none; border-bottom: none; font-size: 0.95rem; margin-bottom: 0.8em; color: #f0f0f0; }
 
+/* Cookie Consent Banner Styles */
+.cookie-consent-banner { position: fixed; bottom: 0; left: 0; width: 100%; background-color: rgba(15, 15, 30, 0.95); color: #e0e0e0; padding: 15px 20px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3); z-index: 1010; display: none; font-size: 0.9rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.cookie-consent-banner p { margin: 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.cookie-consent-banner a { color: #90caf9; text-decoration: underline; }
+.cookie-consent-banner a:hover { color: #bbdefb; }
+.cookie-accept-btn { background-color: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: background-color 0.3s ease; white-space: nowrap; }
+.cookie-accept-btn:hover { background-color: #388E3C; }
+.cookie-consent-hidden { display: none !important; }
+
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
@@ -379,7 +416,7 @@ a:hover {
     /* UPDATED: Navbar mobile adjustments */
     .navbar { padding: 0.4rem 0; min-height: auto; } /* Allow height to shrink */
     .nav-container { flex-wrap: wrap; /* Allow wrapping if needed */ justify-content: space-between; padding: 0 10px;}
-    .nav-logo { flex-basis: auto; /* Allow logo to take natural width */ margin-bottom: 5px; /* Add space if wraps */}
+    .nav-logo { flex-basis: auto; /* Allow logo to take natural width */ margin-bottom: 5px; margin-right: auto; /* Push menu items right */}
     .nav-menu { /* Adjust menu for smaller screens */
         flex-basis: 100%; /* Take full width if wraps */
         justify-content: center; /* Center items */
@@ -399,11 +436,15 @@ a:hover {
 
     /* Ensure about page text isn't centered on mobile */
     .about-page { text-align: left; }
-    .about-page h1 { text-align: left; } /* Align h1 left too */
+    .about-page h1 { text-align: left; font-size: 1.8rem; }
 
 
     .modal-content { width: 95%; padding: 20px; }
     #modal-title { font-size: 1.4rem; }
+
+    /* Stack cookie banner on smaller screens */
+    .cookie-consent-banner p { flex-direction: column; align-items: center; text-align: center; }
+    .cookie-accept-btn { margin-top: 10px; width: 80%; max-width: 200px; }
 }
 
 @media (max-width: 480px) {
@@ -428,6 +469,7 @@ a:hover {
     .testimonial-card img { height: 150px; } /* Slightly taller image for single column */
 
     .about-page { text-align: left; } /* Ensure text remains left-aligned */
+    .about-page h1 { font-size: 1.5rem; }
     .about-page ul, .about-page ol { padding-left: 20px; } /* Ensure list indent */
 
     .modal-content { padding: 15px; }
