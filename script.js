@@ -6,23 +6,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeFiltersContainer = document.getElementById('theme-filters');
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
     const testimonialGrid = document.getElementById('testimonial-grid');
+    const showMoreContainer = document.getElementById('show-more-container');
+    const showMoreBtn = document.getElementById('show-more-btn');
     const healingFactContainer = document.getElementById('healing-fact');
     const nextInsightBtn = document.getElementById('next-insight-btn');
     const modal = document.getElementById('video-modal');
     const modalCloseBtn = modal ? modal.querySelector('.close-button') : null;
     const videoIframe = document.getElementById('video-iframe');
     const voiceTagsDisplay = document.getElementById('voice-tags-display');
-    // New modal content elements
+    // Modal content elements
     const modalTitle = document.getElementById('modal-title');
+    const modalConditionsContainer = document.getElementById('modal-conditions-container');
     const modalConditions = document.getElementById('modal-conditions');
+    const modalThemeContainer = document.getElementById('modal-theme-container'); // Added Theme container
+    const modalTheme = document.getElementById('modal-theme'); // Added Theme span
     const modalMethods = document.getElementById('modal-methods');
     const modalOutcomes = document.getElementById('modal-outcomes');
+    const modalMomentContainer = document.getElementById('modal-moment-container');
     const modalMoment = document.getElementById('modal-moment');
     const modalQuotes = document.getElementById('modal-quotes');
 
     // --- Check if Essential Elements Exist ---
-    // Add checks for new elements as well
-    if (!filterControls || !conditionFiltersContainer || !methodFiltersContainer || !themeFiltersContainer || !clearFiltersBtn || !testimonialGrid || !healingFactContainer || !nextInsightBtn || !modal || !modalCloseBtn || !videoIframe || !voiceTagsDisplay || !modalTitle || !modalConditions || !modalMethods || !modalOutcomes || !modalMoment || !modalQuotes) {
+    // Add checks for new elements like showMoreBtn
+    if (!filterControls || !conditionFiltersContainer || !methodFiltersContainer || !themeFiltersContainer || !clearFiltersBtn || !testimonialGrid || !showMoreContainer || !showMoreBtn || !healingFactContainer || !nextInsightBtn || !modal || !modalCloseBtn || !videoIframe || !voiceTagsDisplay || !modalTitle || !modalConditionsContainer || !modalConditions || !modalThemeContainer || !modalTheme || !modalMethods || !modalOutcomes || !modalMomentContainer || !modalMoment || !modalQuotes) {
         console.error('Essential UI elements not found! Check HTML IDs and structure.');
         if (testimonialGrid) testimonialGrid.innerHTML = '<p class="error-message">Error loading page structure. Please try again later.</p>';
         return; // Stop script execution
@@ -30,13 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State Variables ---
     let testimonialsData = []; // Holds the original full dataset
+    let filteredTestimonials = []; // Holds the currently filtered dataset
     let factsData = { healing_insights: [] };
-    let currentFactIndex = 0;
-    let activeFilters = {
-        condition: null,
-        method: null,
-        theme: null
-    };
+    let currentFactIndex = -1; // Start at -1 to ensure first random pick works
+    let activeFilters = { condition: null, method: null, theme: null };
+    const ITEMS_PER_PAGE = 9; // Number of items to show per page/click
+    let itemsToShow = ITEMS_PER_PAGE; // Track how many items are currently visible
 
     // --- Fetch Data ---
     function fetchData() {
@@ -46,14 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
         conditionFiltersContainer.innerHTML = '<span class="placeholder">Loading filters...</span>';
         methodFiltersContainer.innerHTML = ''; // Clear other filter placeholders too
         themeFiltersContainer.innerHTML = '';
+        showMoreBtn.style.display = 'none'; // Hide button initially
 
-
-        // ** UPDATED FILE PATHS (Removed 'data/') **
+        // Fetch testimonials and facts data
         const testimonialsPromise = fetch('final_db_clustered_tagged_cleaned.json')
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
+            .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! status: ${response.status}`))
             .catch(error => {
                 console.error('Error fetching testimonials:', error);
                 if (testimonialGrid) testimonialGrid.innerHTML = '<p class="error-message">Could not load testimonials. Check file path and JSON format.</p>';
@@ -61,31 +63,30 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         const factsPromise = fetch('facts.json')
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
+            .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! status: ${response.status}`))
             .catch(error => {
                 console.error('Error fetching facts:', error);
                 if (healingFactContainer) healingFactContainer.innerHTML = '<p class="error-message">Could not load insights. Check file path and JSON format.</p>';
                 return { healing_insights: [] }; // Return object with empty array on error
             });
 
+        // Process data once both fetches complete
         Promise.all([testimonialsPromise, factsPromise])
             .then(([testimonials, facts]) => {
                 testimonialsData = testimonials;
+                filteredTestimonials = testimonials; // Initially, filtered is all data
                 factsData = facts;
 
-                // Initialize UI only after data is loaded and elements exist
+                // Initialize UI based on fetched data
                 if (testimonialsData.length > 0) {
                     populateFilters(); // Populate filters based on thresholds
-                    renderTestimonialGrid(testimonialsData); // Render all initially
+                    renderTestimonialGrid(); // Render initial batch of testimonials
                 } else if (!testimonialGrid.querySelector('.error-message')) {
                     testimonialGrid.innerHTML = '<p>No testimonials available.</p>';
                 }
 
                 if (factsData.healing_insights.length > 0) {
-                    displayFact(currentFactIndex); // Display the first fact
+                    displayRandomFact(); // Display initial random fact
                 } else if (!healingFactContainer.querySelector('.error-message')) {
                     healingFactContainer.innerHTML = '<p>No insights available.</p>';
                 }
@@ -96,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper to get unique, flattened, non-empty values from data for a specific key
     function getUniqueFilterValues(data, key, subKey = null) {
-        // If subKey is provided (e.g., 'name' for methods), extract that property
         const allValues = data.flatMap(item => {
             const value = item[key];
             if (!value) return []; // Handle missing key
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return [...new Set(allValues)].filter(value => value);
     }
 
-    // Helper to count occurrences of filter values
+    // Helper to count occurrences of filter values across all testimonials
     function countOccurrences(data, key, subKey = null) {
         const counts = {};
         data.forEach(item => {
@@ -128,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  values = values.map(subItem => (typeof subItem === 'object' && subItem !== null) ? subItem[subKey] : null).filter(Boolean);
             }
 
-
             // Use a Set to count each value only once per testimonial item
             const uniqueValuesPerItem = new Set(values);
             uniqueValuesPerItem.forEach(value => {
@@ -140,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return counts;
     }
 
-
+    // Populates filter buttons based on data and thresholds
     function populateFilters() {
         // Get all unique values first
         const allUniqueConditions = getUniqueFilterValues(testimonialsData, 'conditions');
@@ -150,16 +149,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Count occurrences in the original data
         const conditionCounts = countOccurrences(testimonialsData, 'conditions');
         const methodCounts = countOccurrences(testimonialsData, 'methods', 'name');
-        // No threshold for themes currently
 
-        // ** APPLY THRESHOLDS **
+        // Apply thresholds
         const filteredConditions = allUniqueConditions.filter(condition => conditionCounts[condition] >= 3);
         const filteredMethods = allUniqueMethods.filter(method => methodCounts[method] >= 5);
-        // Themes remain unfiltered by count
-        const filteredThemes = allUniqueThemes;
+        const filteredThemes = allUniqueThemes; // No threshold for themes
 
-
-        // Clear placeholders
+        // Clear placeholders before adding buttons
         conditionFiltersContainer.innerHTML = '';
         methodFiltersContainer.innerHTML = '';
         themeFiltersContainer.innerHTML = '';
@@ -170,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         createFilterButtons(filteredThemes, themeFiltersContainer, 'theme'); // Themes use all unique values
     }
 
+    // Creates and appends filter buttons to the specified container
     function createFilterButtons(values, container, filterType) {
          if (values.length === 0) {
             // Provide a clearer message if no filters meet the criteria
@@ -180,49 +177,49 @@ document.addEventListener('DOMContentLoaded', () => {
         values.sort().forEach(value => {
             const button = document.createElement('button');
             button.textContent = value;
-            button.dataset.filterType = filterType;
-            button.dataset.filterValue = value;
-            button.addEventListener('click', handleFilterClick);
+            button.dataset.filterType = filterType; // Store filter type
+            button.dataset.filterValue = value; // Store filter value
+            button.addEventListener('click', handleFilterClick); // Add click listener
             container.appendChild(button);
         });
     }
 
+    // Handles clicks on filter buttons
     function handleFilterClick(event) {
         const button = event.target;
         const filterType = button.dataset.filterType;
         const filterValue = button.dataset.filterValue;
-
         const filterGroupContainer = button.parentElement;
         const currentlyActive = filterGroupContainer.querySelector('button.active');
 
-        // Logic for single selection per filter group
+        // Toggle logic: If clicking active button, deactivate. Otherwise, activate clicked, deactivate others in group.
         if (currentlyActive && currentlyActive === button) {
-            // Deactivate if clicking the already active button
             button.classList.remove('active');
-            activeFilters[filterType] = null;
+            activeFilters[filterType] = null; // Clear this filter type
         } else {
-            // Deactivate previous button in the group
-            if (currentlyActive) {
-                currentlyActive.classList.remove('active');
-            }
-            // Activate the clicked button
-            button.classList.add('active');
-            activeFilters[filterType] = filterValue;
+            if (currentlyActive) currentlyActive.classList.remove('active'); // Deactivate sibling
+            button.classList.add('active'); // Activate clicked
+            activeFilters[filterType] = filterValue; // Set this filter type
         }
-        filterAndRenderGrid(); // Update grid based on new filter state
+        applyFiltersAndRender(); // Apply filters and re-render the grid
     }
 
+    // Handles click on the "Clear All Filters" button
     clearFiltersBtn.addEventListener('click', () => {
         // Reset active filters object
         activeFilters = { condition: null, method: null, theme: null };
-        // Remove active class from all filter buttons visually
+        // Remove 'active' class from all filter buttons visually
         document.querySelectorAll('#filter-controls button.active').forEach(btn => btn.classList.remove('active'));
-        // Re-render the full grid
-        renderTestimonialGrid(testimonialsData);
+        // Apply empty filters (shows all data) and re-render the grid
+        applyFiltersAndRender();
     });
 
-    function filterAndRenderGrid() {
-        const filteredData = testimonialsData.filter(item => {
+    // Filters the main data based on activeFilters and triggers grid rendering
+    function applyFiltersAndRender() {
+         testimonialGrid.classList.add('grid-loading'); // Add loading class for visual feedback
+
+        // Filter the original testimonialsData
+        filteredTestimonials = testimonialsData.filter(item => {
             // Check condition match
             const conditionMatch = !activeFilters.condition ||
                 (Array.isArray(item.conditions) && item.conditions.includes(activeFilters.condition));
@@ -238,69 +235,103 @@ document.addEventListener('DOMContentLoaded', () => {
             // Item passes if all active filters match (or if filter is not active)
             return conditionMatch && methodMatch && themeMatch;
         });
-        renderTestimonialGrid(filteredData); // Render the filtered data
+
+        itemsToShow = ITEMS_PER_PAGE; // Reset pagination to show the first page
+        renderTestimonialGrid(); // Render the filtered results
+
+        // Remove loading state after a short delay for visual effect
+        setTimeout(() => {
+             testimonialGrid.classList.remove('grid-loading');
+        }, 150); // Adjust delay as needed
     }
 
 
-    // --- Grid Rendering ---
-    function renderTestimonialGrid(dataToRender) {
-        testimonialGrid.innerHTML = ''; // Clear previous grid
+    // --- Grid Rendering & Pagination ---
 
-        if (dataToRender.length === 0) {
+    // Renders the testimonial cards in the grid based on filteredTestimonials and itemsToShow
+    function renderTestimonialGrid() {
+        testimonialGrid.innerHTML = ''; // Clear previous grid content
+
+        // Display message if no testimonials match filters
+        if (filteredTestimonials.length === 0) {
             testimonialGrid.innerHTML = '<p class="placeholder">No testimonials match the current filters.</p>';
+            showMoreBtn.style.display = 'none'; // Hide button if no results
             return;
         }
 
-        dataToRender.forEach(item => {
+        // Determine the slice of data to display based on pagination
+        const dataSlice = filteredTestimonials.slice(0, itemsToShow);
+
+        // Create and append cards for the data slice
+        dataSlice.forEach(item => {
              // Find the original index of the item in the full testimonialsData array
-             // Using URL as a unique identifier, fallback if needed
+             // Using URL as a unique identifier for reliable lookup
              const originalIndex = testimonialsData.findIndex(originalItem => originalItem.url === item.url);
              if (originalIndex === -1) {
-                 console.warn("Could not find original index for item based on URL:", item.title);
-                 // As a fallback, try matching title if URL fails (less reliable)
-                 // const originalIndex = testimonialsData.findIndex(originalItem => originalItem.title === item.title);
-                 // if (originalIndex === -1) return; // Skip if still not found
+                 console.warn("Could not find original index for item:", item.title);
+                 return; // Skip if we can't find the original item
              }
 
+            // Create card element
             const card = document.createElement('div');
             card.className = 'testimonial-card';
-            // Store the ORIGINAL index in the data attribute
-            card.dataset.index = originalIndex;
+            card.dataset.index = originalIndex; // Store the ORIGINAL index
 
-            // Handle potential missing data with fallbacks
+            // Prepare card content, handle N/A or missing data
             const imageUrl = item.thumbnail_url || 'https://placehold.co/300x180/eee/ccc?text=No+Image';
             const title = item.title || 'Untitled Testimonial';
-            const conditions = Array.isArray(item.conditions) ? item.conditions.join(', ') : 'N/A';
-            const theme = Array.isArray(item.theme) ? item.theme.join(', ') : 'N/A'; // Get theme text
+            // Get first quote, handle missing quotes
+            const quote = (Array.isArray(item.hope_driven_quotes) && item.hope_driven_quotes.length > 0) ? item.hope_driven_quotes[0] : null;
+            // Get first 2 non-empty voice tags
+            const tags = (Array.isArray(item.voice_tags) && item.voice_tags.length > 0)
+                       ? item.voice_tags.filter(t => t && t.trim()).slice(0, 2)
+                       : null;
 
-             // ** UPDATED Card HTML: Only show Theme if it's not 'N/A' **
-             // Consider adding Emojis here later based on condition/theme if desired
+            // Generate card HTML (showing quote and tags, hiding condition/theme)
             card.innerHTML = `
                 <img src="${imageUrl}" alt="${title}" loading="lazy">
                 <h4>${title}</h4>
-                <p><strong>Condition:</strong> ${conditions}</p>
-                ${theme !== 'N/A' ? `<p><strong>Theme:</strong> ${theme}</p>` : ''}
+                <div class="card-content">
+                    ${quote ? `<p class="card-quote">"${quote}"</p>` : '<p class="card-quote" style="opacity: 0.5;"><em>No quote available.</em></p>'}
+                    ${tags ? `<div class="card-tags">${tags.map(tag => `<span>${tag}</span>`).join('')}</div>` : ''}
+                </div>
             `;
 
             // Add click listener to the entire card
-            card.addEventListener('click', () => handleCardClick(originalIndex)); // Pass original index
+            card.addEventListener('click', () => handleCardClick(originalIndex)); // Pass original index to modal handler
             testimonialGrid.appendChild(card);
         });
+
+        // Show or hide the "Show More" button based on remaining items
+        if (filteredTestimonials.length > itemsToShow) {
+            showMoreBtn.style.display = 'inline-block';
+        } else {
+            showMoreBtn.style.display = 'none';
+        }
     }
 
+    // Event listener for "Show More" button
+    showMoreBtn.addEventListener('click', () => {
+        itemsToShow += ITEMS_PER_PAGE; // Increase number of items to show
+        renderTestimonialGrid(); // Re-render the grid with more items
+    });
+
+
     // --- Modal Logic ---
+
+    // Handles clicks on testimonial cards to open and populate the modal
     function handleCardClick(index) {
-        // Retrieve the full data using the original index
+        // Retrieve the full data using the original index from testimonialsData
         const testimonial = testimonialsData[index];
         if (!testimonial) {
-            console.error(`Testimonial data not found for index: ${index}`);
-            return; // Exit if data is missing
+             console.error(`Testimonial data not found for index: ${index}`);
+             return; // Exit if data is missing
         }
 
         // Populate Modal Title
         modalTitle.textContent = testimonial.title || 'Testimonial Details';
 
-        // Populate Video (using updated embed logic)
+        // Populate Video Iframe Source (with embed URL logic)
         if (testimonial.url) {
             let embedUrl = testimonial.url; // Default assumption
              try {
@@ -318,20 +349,15 @@ document.addEventListener('DOMContentLoaded', () => {
                      if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
                 }
                  // Add more platform checks here if needed (e.g., Vimeo)
-
             } catch (e) {
                 console.error("Error parsing video URL:", testimonial.url, e);
-                // If parsing fails, maybe try using the original URL directly,
-                // or leave it blank if it's known not to be embeddable.
-                // For now, we keep the original URL as fallback.
             }
             videoIframe.src = embedUrl;
         } else {
             videoIframe.src = ''; // Clear src if no URL provided
         }
 
-
-        // Populate Voice Tags
+        // Populate Voice Tags Display
         voiceTagsDisplay.innerHTML = ''; // Clear previous tags
         if (Array.isArray(testimonial.voice_tags) && testimonial.voice_tags.length > 0) {
             testimonial.voice_tags.forEach(tag => {
@@ -345,87 +371,96 @@ document.addEventListener('DOMContentLoaded', () => {
             voiceTagsDisplay.innerHTML = '<span>No voice tags available</span>'; // Provide fallback text
         }
 
-        // Populate Additional Context Fields
-        modalConditions.textContent = Array.isArray(testimonial.conditions) ? testimonial.conditions.join(', ') : 'N/A';
-        modalMoment.textContent = testimonial.most_inspiring_moment || 'N/A';
+        // ** Populate Modal Details Conditionally (Hide if N/A or missing) **
 
-        // Populate Methods (handles array of objects or strings)
-        modalMethods.innerHTML = '<h4>Methods Used:</h4>'; // Add title
-        const methodsList = document.createElement('ul');
-        if (Array.isArray(testimonial.methods) && testimonial.methods.length > 0) {
-            testimonial.methods.forEach(method => {
+        // Helper function to populate a simple text detail and hide its container if value is invalid
+        function populateDetail(containerElement, textElement, value) {
+            const textValue = Array.isArray(value) ? value.join(', ') : value; // Join arrays if needed
+            // Check if value exists and is not considered N/A
+            if (textValue && textValue !== 'N/A' && textValue !== 'unknown') {
+                textElement.textContent = textValue;
+                containerElement.style.display = 'block'; // Show the container paragraph
+            } else {
+                containerElement.style.display = 'none'; // Hide the container paragraph
+            }
+        }
+
+        // Helper function to populate list details (Methods, Outcomes, Quotes)
+        function populateListDetail(containerElement, title, values, renderFn) {
+            containerElement.innerHTML = ''; // Clear previous content
+            const list = document.createElement('ul');
+            let itemsFound = false; // Flag to track if any valid items were added
+            if (Array.isArray(values) && values.length > 0) {
+                values.forEach(item => {
+                    const li = renderFn(item); // Use provided function to create li
+                    if (li) { // Check if renderFn returned a valid list item
+                        list.appendChild(li);
+                        itemsFound = true; // Mark that we found at least one item
+                    }
+                });
+            }
+            // Only show the section if valid items were found
+            if (itemsFound) {
+                containerElement.innerHTML = `<h4>${title}</h4>`; // Add title
+                containerElement.appendChild(list);
+                containerElement.style.display = 'block'; // Show section
+            } else {
+                containerElement.style.display = 'none'; // Hide section if no valid items
+            }
+        }
+
+        // Populate Conditions & Theme (which were moved from card)
+        populateDetail(modalConditionsContainer, modalConditions, testimonial.conditions);
+        populateDetail(modalThemeContainer, modalTheme, testimonial.theme);
+
+        // Populate Methods list
+        populateListDetail(modalMethods, 'Methods Used', testimonial.methods, (method) => {
+            let methodText = null;
+            // Handle method being object or string
+            if (typeof method === 'object' && method !== null && method.name) {
+                methodText = `${method.name}${method.efficacy_score ? ` (Efficacy: ${method.efficacy_score}/10)` : ''}`;
+            } else if (typeof method === 'string' && method.trim()) {
+                 methodText = method;
+            }
+            // Create list item only if text is valid
+            if (methodText) {
                 const li = document.createElement('li');
-                // Check if method is an object with a name property
-                 if (typeof method === 'object' && method !== null && method.name) {
-                     li.textContent = `${method.name}${method.efficacy_score ? ` (Efficacy: ${method.efficacy_score}/10)` : ''}`;
-                 } else if (typeof method === 'string' && method.trim()) { // Handle if it's just a non-empty string
-                      li.textContent = method;
-                 }
-                 // Skip if method is null, empty, or unexpected format
-                 else {
-                     return; // Don't append an empty/invalid list item
-                 }
-                methodsList.appendChild(li);
-            });
-             // If after iterating, no valid methods were added, show N/A
-            if (methodsList.children.length === 0) {
-                 methodsList.innerHTML = '<li>N/A</li>';
+                li.textContent = methodText;
+                return li;
             }
-        } else {
-            methodsList.innerHTML = '<li>N/A</li>'; // Show N/A if methods array is empty/missing
-        }
-        modalMethods.appendChild(methodsList);
+            return null; // Return null for invalid items
+        });
 
-
-        // Populate Outcomes (checks for physical/emotional properties)
-        modalOutcomes.innerHTML = '<h4>Outcomes:</h4>'; // Reset and add title
-         const outcomesList = document.createElement('ul');
-         let outcomesFound = false;
-         if (testimonial.method_outcomes) { // Check if outcomes object exists
-             if(testimonial.method_outcomes.physical) {
+        // Populate Outcomes list
+        populateListDetail(modalOutcomes, 'Outcomes', testimonial.method_outcomes ? Object.entries(testimonial.method_outcomes) : [], (outcomeEntry) => {
+             const [key, value] = outcomeEntry; // Key is 'physical' or 'emotional'
+             if (value) { // Only show if outcome value exists
                  const li = document.createElement('li');
-                 li.innerHTML = `<strong>Physical:</strong> ${testimonial.method_outcomes.physical}`;
-                 outcomesList.appendChild(li);
-                 outcomesFound = true;
+                 const label = key.charAt(0).toUpperCase() + key.slice(1); // Capitalize label
+                 li.innerHTML = `<strong>${label}:</strong> ${value}`;
+                 return li;
              }
-              if(testimonial.method_outcomes.emotional) {
-                 const li = document.createElement('li');
-                 li.innerHTML = `<strong>Emotional:</strong> ${testimonial.method_outcomes.emotional}`;
-                 outcomesList.appendChild(li);
-                 outcomesFound = true;
-             }
-         }
-         // If outcomes object existed but had no relevant properties, or didn't exist
-         if (!outcomesFound) {
-              outcomesList.innerHTML = '<li>N/A</li>';
-         }
-         modalOutcomes.appendChild(outcomesList);
+             return null; // Return null if value is missing
+        });
 
+        // Populate Inspiring Moment
+        populateDetail(modalMomentContainer, modalMoment, testimonial.most_inspiring_moment);
 
-        // Populate Hope Quotes
-        modalQuotes.innerHTML = '<h4>Hope Driven Quotes:</h4>'; // Reset and add title
-        const quotesList = document.createElement('ul');
-        if (Array.isArray(testimonial.hope_driven_quotes) && testimonial.hope_driven_quotes.length > 0) {
-            testimonial.hope_driven_quotes.forEach(quote => {
-                 if (quote && quote.trim()) { // Ensure quote is not null/empty
-                    const li = document.createElement('li');
-                    li.textContent = `"${quote.trim()}"`;
-                    quotesList.appendChild(li);
-                 }
-            });
-             // If after iterating, no valid quotes were added, show N/A
-            if (quotesList.children.length === 0) {
-                 quotesList.innerHTML = '<li>N/A</li>';
+        // Populate Hope Quotes list
+        populateListDetail(modalQuotes, 'Hope Driven Quotes', testimonial.hope_driven_quotes, (quote) => {
+            if (quote && quote.trim()) { // Ensure quote is not empty
+                const li = document.createElement('li');
+                li.textContent = `"${quote.trim()}"`;
+                return li;
             }
-        } else {
-            quotesList.innerHTML = '<li>N/A</li>'; // Show N/A if quotes array is empty/missing
-        }
-        modalQuotes.appendChild(quotesList);
+            return null; // Return null for empty quotes
+        });
 
-        // Display Modal
+        // Display the modal
         modal.style.display = 'flex'; // Use flex to enable centering defined in CSS
     }
 
+    // Closes the modal and stops video playback
     function closeModal() {
         if (!modal || !videoIframe) return; // Safety check
         modal.style.display = 'none'; // Hide modal
@@ -433,47 +468,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Healing Insights Logic ---
+
+    // Displays a fact at the given index, hiding N/A values
     function displayFact(index) {
         // Ensure container and data exist
         if (!healingFactContainer || !factsData.healing_insights || factsData.healing_insights.length === 0) {
-           // Display message only if container exists and no error message is already there
            if (healingFactContainer && !healingFactContainer.querySelector('.error-message')) {
                  healingFactContainer.innerHTML = '<p>No insights available.</p>';
             }
            return; // Exit if no facts or container
         }
-
-        // Calculate safe index with modulo
-        const safeIndex = index % factsData.healing_insights.length;
+        // Ensure index is valid after random pick or increment
+        const safeIndex = Math.max(0, Math.min(index, factsData.healing_insights.length - 1));
         const fact = factsData.healing_insights[safeIndex];
+        if (!fact) { // Extra safety check
+             console.error("Invalid fact index:", index, "Mapped to:", safeIndex);
+             return;
+        }
+        currentFactIndex = safeIndex; // Store the currently displayed index
 
-        // Construct HTML safely, providing fallbacks for missing properties
-        healingFactContainer.innerHTML = `
-            <h3>${fact.title || 'Insight'}</h3>
-            ${fact.stat ? `<p class="fact-stat">${fact.stat}</p>` : ''}
-            ${fact.quote ? `<p class="fact-quote">"${fact.quote}"</p>` : ''}
-            ${fact.action ? `<p class="fact-action">${fact.action}</p>` : ''}
-        `;
-        // Optional: Visual feedback on change
-        healingFactContainer.style.backgroundColor = '#dcedc8'; // Temporary highlight
+        // Construct HTML safely, checking if values exist and are meaningful before including
+        let factHTML = `<h3>${fact.title || 'Insight'}</h3>`;
+        // Only add paragraphs if the content exists and is not 'N/A' or 'unknown'
+        if (fact.stat && fact.stat !== 'N/A' && fact.stat !== 'unknown') factHTML += `<p class="fact-stat">${fact.stat}</p>`;
+        if (fact.quote && fact.quote !== 'N/A' && fact.quote !== 'unknown') factHTML += `<p class="fact-quote">"${fact.quote}"</p>`;
+        if (fact.action && fact.action !== 'N/A' && fact.action !== 'unknown') factHTML += `<p class="fact-action">${fact.action}</p>`;
+        healingFactContainer.innerHTML = factHTML;
+
+        // Visual feedback on change
+        healingFactContainer.style.backgroundColor = '#dcedc8'; // Temporary highlight color
         setTimeout(() => {
             // Check if container still exists before changing style back
-            if (healingFactContainer) healingFactContainer.style.backgroundColor = '#fff';
+            // Use the dark theme background color for consistency
+            if (healingFactContainer) healingFactContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
         }, 300); // Duration of highlight
     }
 
+    // Function to display the initial random fact on load
+     function displayRandomFact() {
+        if (!factsData.healing_insights || factsData.healing_insights.length === 0) return;
+        const randomIndex = Math.floor(Math.random() * factsData.healing_insights.length);
+        displayFact(randomIndex); // Display the randomly selected fact
+    }
+
+    // Function to display the next random fact, ensuring it's different from the current one
+    function displayNextRandomFact() {
+         if (!factsData.healing_insights || factsData.healing_insights.length === 0) return; // No facts
+         if (factsData.healing_insights.length === 1) { // Only one fact, just display it
+             displayFact(0);
+             return;
+         }
+
+         let nextIndex;
+         // Keep generating random indices until a different one is found
+         do {
+             nextIndex = Math.floor(Math.random() * factsData.healing_insights.length);
+         } while (nextIndex === currentFactIndex); // Ensure it's not the same as the current one
+
+         displayFact(nextIndex); // Display the new random fact
+    }
+
+
     // --- Event Listeners ---
 
-    // Listener for "Show Another Insight" button
+    // Listener for "Show Another Insight" button (uses random function)
     if (nextInsightBtn) {
-        nextInsightBtn.addEventListener('click', () => {
-             // Only proceed if facts data is available
-             if (!factsData.healing_insights || factsData.healing_insights.length === 0) return;
-             // Increment index safely
-             currentFactIndex = (currentFactIndex + 1) % factsData.healing_insights.length;
-             // Display the new fact
-             displayFact(currentFactIndex);
-        });
+        nextInsightBtn.addEventListener('click', displayNextRandomFact);
     }
 
     // Listener for Modal Close Button
@@ -481,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
          modalCloseBtn.addEventListener('click', closeModal);
     }
 
-    // Listener for Modal Background Click
+    // Listener for Modal Background Click (closes modal)
     if (modal) {
         modal.addEventListener('click', (event) => {
             // Close only if the click is directly on the modal background (event.target)
