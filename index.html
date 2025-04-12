@@ -25,6 +25,7 @@
                 <li class="nav-item"><a href="#testimonial-section" class="nav-link">Stories</a></li>
                 <li class="nav-item"><a href="#insights-section" class="nav-link">Insights</a></li>
                 <li class="nav-item"><a href="about.html" class="nav-link">About</a></li>
+                <li class="nav-item"><a href="https://forms.gle/fxrWSSNjG5sMyhdU9" target="_blank" rel="noopener noreferrer" class="nav-link">Feedback</a></li>
                  <li class="nav-item">
                     <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="nav-link donate-button">
                         🌿 Support This Project
@@ -45,18 +46,19 @@
                 <h4>Filter by Condition (3+ stories):</h4>
                 <div id="condition-filters" class="filter-buttons">
                     <span class="placeholder">Loading filters...</span>
-                </div>
+                    </div>
+                 <button class="show-more-filters" data-filter-type="condition" style="display: none;">Show More Conditions</button>
             </div>
             <div class="filter-group">
                 <h4>Filter by Method (5+ stories):</h4>
                 <div id="method-filters" class="filter-buttons">
                     </div>
-            </div>
+                 </div>
              <div class="filter-group">
                 <h4>Filter by Theme:</h4>
                 <div id="theme-filters" class="filter-buttons">
                     </div>
-            </div>
+                 </div>
             <button id="clear-filters-btn" class="clear-button">Clear All Filters</button>
         </div>
 
@@ -64,7 +66,7 @@
             <p class="placeholder">Loading testimonials...</p>
         </div>
 
-        <div id="show-more-container" class="show-more-container" style="text-align: center; margin-top: 30px;">
+        <div id="show-more-container" class="show-more-container">
             <button id="show-more-btn" class="insight-button" style="display: none;">Show More Stories</button>
         </div>
 
@@ -97,16 +99,19 @@
             <hr class="modal-divider">
             <div class="modal-details">
                 <h4>Details:</h4>
-                <p id="modal-conditions-container" style="display: none;"> <strong>Condition(s):</strong> <span id="modal-conditions"></span>
+                <p id="modal-conditions-container" style="display: none;">
+                    <strong>Condition(s):</strong> <span id="modal-conditions"></span>
                 </p>
-                 <p id="modal-theme-container" style="display: none;"> <strong>Theme(s):</strong> <span id="modal-theme"></span>
+                 <p id="modal-theme-container" style="display: none;">
+                    <strong>Theme(s):</strong> <span id="modal-theme"></span>
                 </p>
                 <div id="modal-methods">
                     </div>
                  <div id="modal-outcomes">
                     <h4>Outcomes:</h4>
                     </div>
-                <p id="modal-moment-container" style="display: none;"> <strong>Most Inspiring Moment:</strong> <span id="modal-moment"></span>
+                <p id="modal-moment-container" style="display: none;">
+                    <strong>Most Inspiring Moment:</strong> <span id="modal-moment"></span>
                 </p>
                 <div id="modal-quotes">
                     <h4>Hope Driven Quotes:</h4>
@@ -118,8 +123,15 @@
     <footer class="site-footer">
         <p class="footer-links">
             <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Use</a>
-            </p>
+        </p>
     </footer>
+
+    <div id="cookieConsentBanner" class="cookie-consent-banner">
+        <p>
+            This website uses cookies (specifically Google Analytics) to analyze traffic and improve your experience. By continuing to use this site, you acknowledge this use. Learn more in our <a href="privacy.html">Privacy Policy</a>.
+            <button id="cookieConsentAccept" class="cookie-accept-btn">Got it!</button>
+        </p>
+    </div>
 
     <script src="script.js"></script>
 </body>
