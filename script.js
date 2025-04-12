@@ -25,13 +25,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalMomentContainer = document.getElementById('modal-moment-container');
     const modalMoment = document.getElementById('modal-moment');
     const modalQuotes = document.getElementById('modal-quotes');
+    // Cookie Banner Elements
+    const consentBanner = document.getElementById('cookieConsentBanner');
+    const acceptButton = document.getElementById('cookieConsentAccept');
+    // Show More Filters Button (specific to conditions for now)
+    const showMoreConditionsBtn = document.querySelector('.show-more-filters[data-filter-type="condition"]');
+
 
     // --- Check if Essential Elements Exist ---
-    // Add checks for new elements like showMoreBtn
-    if (!filterControls || !conditionFiltersContainer || !methodFiltersContainer || !themeFiltersContainer || !clearFiltersBtn || !testimonialGrid || !showMoreContainer || !showMoreBtn || !healingFactContainer || !nextInsightBtn || !modal || !modalCloseBtn || !videoIframe || !voiceTagsDisplay || !modalTitle || !modalConditionsContainer || !modalConditions || !modalThemeContainer || !modalTheme || !modalMethods || !modalOutcomes || !modalMomentContainer || !modalMoment || !modalQuotes) {
+    // Add checks for new elements like showMoreConditionsBtn
+    if (!filterControls || !conditionFiltersContainer || !methodFiltersContainer || !themeFiltersContainer || !clearFiltersBtn || !testimonialGrid || !showMoreContainer || !showMoreBtn || !healingFactContainer || !nextInsightBtn || !modal || !modalCloseBtn || !videoIframe || !voiceTagsDisplay || !modalTitle || !modalConditionsContainer || !modalConditions || !modalThemeContainer || !modalTheme || !modalMethods || !modalOutcomes || !modalMomentContainer || !modalMoment || !modalQuotes || !consentBanner || !acceptButton || !showMoreConditionsBtn) {
         console.error('Essential UI elements not found! Check HTML IDs and structure.');
-        if (testimonialGrid) testimonialGrid.innerHTML = '<p class="error-message">Error loading page structure. Please try again later.</p>';
-        return; // Stop script execution
+        // Avoid wiping the grid if it exists but other elements are missing
+        // if (testimonialGrid) testimonialGrid.innerHTML = '<p class="error-message">Error loading page structure. Please try again later.</p>';
+        return; // Stop script execution if critical elements are missing
     }
 
     // --- State Variables ---
@@ -42,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeFilters = { condition: null, method: null, theme: null };
     const ITEMS_PER_PAGE = 9; // Number of items to show per page/click
     let itemsToShow = ITEMS_PER_PAGE; // Track how many items are currently visible
+    const MAX_CONDITIONS_VISIBLE = 10; // Max condition filters to show initially
 
     // --- Fetch Data ---
     function fetchData() {
@@ -52,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         methodFiltersContainer.innerHTML = ''; // Clear other filter placeholders too
         themeFiltersContainer.innerHTML = '';
         showMoreBtn.style.display = 'none'; // Hide button initially
+        showMoreConditionsBtn.style.display = 'none'; // Hide initially
 
         // Fetch testimonials and facts data
         const testimonialsPromise = fetch('final_db_clustered_tagged_cleaned.json')
@@ -161,28 +170,63 @@ document.addEventListener('DOMContentLoaded', () => {
         themeFiltersContainer.innerHTML = '';
 
         // Create buttons only for values meeting the threshold
-        createFilterButtons(filteredConditions, conditionFiltersContainer, 'condition');
+        createFilterButtons(filteredConditions, conditionFiltersContainer, 'condition', MAX_CONDITIONS_VISIBLE);
+        // Populate others normally
         createFilterButtons(filteredMethods, methodFiltersContainer, 'method');
-        createFilterButtons(filteredThemes, themeFiltersContainer, 'theme'); // Themes use all unique values
+        createFilterButtons(filteredThemes, themeFiltersContainer, 'theme');
     }
 
-    // Creates and appends filter buttons to the specified container
-    function createFilterButtons(values, container, filterType) {
+    // Creates and appends filter buttons to the specified container, handling visibility limit
+    function createFilterButtons(values, container, filterType, limit = null) {
+         if (!container) return; // Safety check
          if (values.length === 0) {
             // Provide a clearer message if no filters meet the criteria
             container.innerHTML = `<span class="placeholder">No common ${filterType}s found meeting criteria.</span>`;
+             // Ensure show more button for this type is hidden
+             const showMoreBtnForType = document.querySelector(`.show-more-filters[data-filter-type="${filterType}"]`);
+             if (showMoreBtnForType) showMoreBtnForType.style.display = 'none';
             return;
         }
         // Sort values alphabetically for consistent order
-        values.sort().forEach(value => {
+        values.sort().forEach((value, index) => {
             const button = document.createElement('button');
             button.textContent = value;
             button.dataset.filterType = filterType; // Store filter type
             button.dataset.filterValue = value; // Store filter value
             button.addEventListener('click', handleFilterClick); // Add click listener
+            // Hide button if limit is set and index exceeds it
+            if (limit !== null && index >= limit) {
+                button.classList.add('filter-button-hidden');
+            }
             container.appendChild(button);
         });
+
+        // Show the "Show More" button if limit was applied and there are hidden buttons
+        const showMoreBtnForType = document.querySelector(`.show-more-filters[data-filter-type="${filterType}"]`);
+        if (showMoreBtnForType) {
+            if (limit !== null && values.length > limit) {
+                showMoreBtnForType.style.display = 'block'; // Show the button
+            } else {
+                showMoreBtnForType.style.display = 'none'; // Hide the button
+            }
+        }
     }
+
+     // Add listener for the "Show More Conditions" button
+     if (showMoreConditionsBtn) {
+        showMoreConditionsBtn.addEventListener('click', (event) => {
+            const filterType = event.target.dataset.filterType;
+            const container = document.getElementById(`${filterType}-filters`);
+            if (container) {
+                // Remove the hidden class from all buttons within this container
+                container.querySelectorAll('.filter-button-hidden').forEach(btn => {
+                    btn.classList.remove('filter-button-hidden');
+                });
+            }
+            event.target.style.display = 'none'; // Hide the "Show More" button itself
+        });
+    }
+
 
     // Handles clicks on filter buttons
     function handleFilterClick(event) {
@@ -210,12 +254,26 @@ document.addEventListener('DOMContentLoaded', () => {
         activeFilters = { condition: null, method: null, theme: null };
         // Remove 'active' class from all filter buttons visually
         document.querySelectorAll('#filter-controls button.active').forEach(btn => btn.classList.remove('active'));
+
+        // Reset visibility of condition filters
+        if (conditionFiltersContainer) {
+            conditionFiltersContainer.querySelectorAll('button').forEach((btn, index) => {
+                btn.classList.toggle('filter-button-hidden', index >= MAX_CONDITIONS_VISIBLE);
+            });
+        }
+        // Show 'Show More Conditions' button again if needed
+        const numConditions = conditionFiltersContainer ? conditionFiltersContainer.querySelectorAll('button').length : 0;
+        if (showMoreConditionsBtn) {
+             showMoreConditionsBtn.style.display = (numConditions > MAX_CONDITIONS_VISIBLE) ? 'block' : 'none';
+        }
+
         // Apply empty filters (shows all data) and re-render the grid
         applyFiltersAndRender();
     });
 
     // Filters the main data based on activeFilters and triggers grid rendering
     function applyFiltersAndRender() {
+         if (!testimonialGrid) return; // Safety check
          testimonialGrid.classList.add('grid-loading'); // Add loading class for visual feedback
 
         // Filter the original testimonialsData
@@ -241,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Remove loading state after a short delay for visual effect
         setTimeout(() => {
-             testimonialGrid.classList.remove('grid-loading');
+            if (testimonialGrid) testimonialGrid.classList.remove('grid-loading');
         }, 150); // Adjust delay as needed
     }
 
@@ -250,12 +308,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Renders the testimonial cards in the grid based on filteredTestimonials and itemsToShow
     function renderTestimonialGrid() {
+        if (!testimonialGrid) return; // Safety check
         testimonialGrid.innerHTML = ''; // Clear previous grid content
 
         // Display message if no testimonials match filters
         if (filteredTestimonials.length === 0) {
             testimonialGrid.innerHTML = '<p class="placeholder">No testimonials match the current filters.</p>';
-            showMoreBtn.style.display = 'none'; // Hide button if no results
+            if (showMoreBtn) showMoreBtn.style.display = 'none'; // Hide button if no results
             return;
         }
 
@@ -303,18 +362,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Show or hide the "Show More" button based on remaining items
-        if (filteredTestimonials.length > itemsToShow) {
-            showMoreBtn.style.display = 'inline-block';
-        } else {
-            showMoreBtn.style.display = 'none';
+        if (showMoreBtn) {
+            if (filteredTestimonials.length > itemsToShow) {
+                showMoreBtn.style.display = 'inline-block';
+            } else {
+                showMoreBtn.style.display = 'none';
+            }
         }
     }
 
-    // Event listener for "Show More" button
-    showMoreBtn.addEventListener('click', () => {
-        itemsToShow += ITEMS_PER_PAGE; // Increase number of items to show
-        renderTestimonialGrid(); // Re-render the grid with more items
-    });
+    // Event listener for "Show More" testimonials button
+    if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', () => {
+            itemsToShow += ITEMS_PER_PAGE; // Increase number of items to show
+            renderTestimonialGrid(); // Re-render the grid with more items
+        });
+    }
 
 
     // --- Modal Logic ---
@@ -323,16 +386,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleCardClick(index) {
         // Retrieve the full data using the original index from testimonialsData
         const testimonial = testimonialsData[index];
-        if (!testimonial) {
-             console.error(`Testimonial data not found for index: ${index}`);
-             return; // Exit if data is missing
-        }
+        if (!testimonial || !modal) return; // Safety checks
 
         // Populate Modal Title
-        modalTitle.textContent = testimonial.title || 'Testimonial Details';
+        if (modalTitle) modalTitle.textContent = testimonial.title || 'Testimonial Details';
 
         // Populate Video Iframe Source (with embed URL logic)
-        if (testimonial.url) {
+        if (videoIframe && testimonial.url) {
             let embedUrl = testimonial.url; // Default assumption
              try {
                  // Check for standard YouTube watch URL
@@ -353,28 +413,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Error parsing video URL:", testimonial.url, e);
             }
             videoIframe.src = embedUrl;
-        } else {
-            videoIframe.src = ''; // Clear src if no URL provided
+        } else if (videoIframe) {
+             videoIframe.src = ''; // Clear src if no URL provided
         }
 
         // Populate Voice Tags Display
-        voiceTagsDisplay.innerHTML = ''; // Clear previous tags
-        if (Array.isArray(testimonial.voice_tags) && testimonial.voice_tags.length > 0) {
-            testimonial.voice_tags.forEach(tag => {
-                if (tag && tag.trim()) { // Ensure tag is not null/empty
-                    const tagElement = document.createElement('span');
-                    tagElement.textContent = tag.trim();
-                    voiceTagsDisplay.appendChild(tagElement);
-                }
-            });
-        } else {
-            voiceTagsDisplay.innerHTML = '<span>No voice tags available</span>'; // Provide fallback text
+        if (voiceTagsDisplay) {
+            voiceTagsDisplay.innerHTML = ''; // Clear previous tags
+            if (Array.isArray(testimonial.voice_tags) && testimonial.voice_tags.length > 0) {
+                testimonial.voice_tags.forEach(tag => {
+                    if (tag && tag.trim()) { // Ensure tag is not null/empty
+                        const tagElement = document.createElement('span');
+                        tagElement.textContent = tag.trim();
+                        voiceTagsDisplay.appendChild(tagElement);
+                    }
+                });
+            } else {
+                voiceTagsDisplay.innerHTML = '<span>No voice tags available</span>'; // Provide fallback text
+            }
         }
 
         // ** Populate Modal Details Conditionally (Hide if N/A or missing) **
 
         // Helper function to populate a simple text detail and hide its container if value is invalid
         function populateDetail(containerElement, textElement, value) {
+            if (!containerElement || !textElement) return; // Safety check
             const textValue = Array.isArray(value) ? value.join(', ') : value; // Join arrays if needed
             // Check if value exists and is not considered N/A
             if (textValue && textValue !== 'N/A' && textValue !== 'unknown') {
@@ -387,6 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Helper function to populate list details (Methods, Outcomes, Quotes)
         function populateListDetail(containerElement, title, values, renderFn) {
+             if (!containerElement) return; // Safety check
             containerElement.innerHTML = ''; // Clear previous content
             const list = document.createElement('ul');
             let itemsFound = false; // Flag to track if any valid items were added
@@ -409,11 +473,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Populate Conditions & Theme (which were moved from card)
+        // Populate specific modal fields using helpers
         populateDetail(modalConditionsContainer, modalConditions, testimonial.conditions);
-        populateDetail(modalThemeContainer, modalTheme, testimonial.theme);
+        populateDetail(modalThemeContainer, modalTheme, testimonial.theme); // Populate Theme here
+        populateDetail(modalMomentContainer, modalMoment, testimonial.most_inspiring_moment);
 
-        // Populate Methods list
         populateListDetail(modalMethods, 'Methods Used', testimonial.methods, (method) => {
             let methodText = null;
             // Handle method being object or string
@@ -431,7 +495,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return null; // Return null for invalid items
         });
 
-        // Populate Outcomes list
         populateListDetail(modalOutcomes, 'Outcomes', testimonial.method_outcomes ? Object.entries(testimonial.method_outcomes) : [], (outcomeEntry) => {
              const [key, value] = outcomeEntry; // Key is 'physical' or 'emotional'
              if (value) { // Only show if outcome value exists
@@ -443,10 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
              return null; // Return null if value is missing
         });
 
-        // Populate Inspiring Moment
-        populateDetail(modalMomentContainer, modalMoment, testimonial.most_inspiring_moment);
-
-        // Populate Hope Quotes list
         populateListDetail(modalQuotes, 'Hope Driven Quotes', testimonial.hope_driven_quotes, (quote) => {
             if (quote && quote.trim()) { // Ensure quote is not empty
                 const li = document.createElement('li');
@@ -527,6 +586,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
          displayFact(nextIndex); // Display the new random fact
     }
+
+
+    // --- Cookie Consent Banner Logic ---
+    const consentGiven = localStorage.getItem('cookieConsentGiven');
+    if (!consentGiven && consentBanner) {
+        consentBanner.style.display = 'block'; // Show banner if no consent stored
+        if (acceptButton) {
+            acceptButton.addEventListener('click', () => {
+                localStorage.setItem('cookieConsentGiven', 'true'); // Store consent
+                consentBanner.classList.add('cookie-consent-hidden'); // Hide banner
+            });
+        }
+    } else if (consentBanner) {
+        consentBanner.classList.add('cookie-consent-hidden'); // Keep hidden if already consented
+    }
+    // Note: GA script still loads initially in this simple setup. See previous notes.
 
 
     // --- Event Listeners ---
