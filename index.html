@@ -37,7 +37,7 @@
     <section id="testimonial-section" class="content-section testimonial-container">
         <h2>Inspiring Stories</h2>
         <p class="intro-text" style="text-align: center; margin-bottom: 2em; font-size: 1.1em; color: #ccc;">
-            Dispenza Community Stories: Filter for Hope.💖
+            Explore inspiring Joe Dispenza community testimonials. Filter by condition, method, or theme to find stories that resonate with your healing journey.
         </p>
 
         <div id="filter-controls">
@@ -63,6 +63,11 @@
         <div id="testimonial-grid" class="grid-container">
             <p class="placeholder">Loading testimonials...</p>
         </div>
+
+        <div id="show-more-container" class="show-more-container" style="text-align: center; margin-top: 30px;">
+            <button id="show-more-btn" class="insight-button" style="display: none;">Show More Stories</button>
+        </div>
+
     </section>
 
     <section id="insights-section" class="content-section insights-container">
@@ -92,19 +97,29 @@
             <hr class="modal-divider">
             <div class="modal-details">
                 <h4>Details:</h4>
-                <p><strong>Condition(s):</strong> <span id="modal-conditions"></span></p>
+                <p id="modal-conditions-container" style="display: none;"> <strong>Condition(s):</strong> <span id="modal-conditions"></span>
+                </p>
+                 <p id="modal-theme-container" style="display: none;"> <strong>Theme(s):</strong> <span id="modal-theme"></span>
+                </p>
                 <div id="modal-methods">
                     </div>
                  <div id="modal-outcomes">
                     <h4>Outcomes:</h4>
                     </div>
-                <p><strong>Most Inspiring Moment:</strong> <span id="modal-moment"></span></p>
+                <p id="modal-moment-container" style="display: none;"> <strong>Most Inspiring Moment:</strong> <span id="modal-moment"></span>
+                </p>
                 <div id="modal-quotes">
                     <h4>Hope Driven Quotes:</h4>
                     </div>
             </div>
         </div>
     </div>
+
+    <footer class="site-footer">
+        <p class="footer-links">
+            <a href="#">Privacy Policy</a> | <a href="#">Terms of Use</a>
+            </p>
+    </footer>
 
     <script src="script.js"></script>
 </body>
