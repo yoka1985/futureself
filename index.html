@@ -4,133 +4,251 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Future Self - Stories & Insights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FRDXP452X5"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-FRDXP452X5');
+      // We will call gtag('js', new Date()); and gtag('config', 'G-FRDXP452X5'); from script.js after consent
     </script>
-    </head>
-<body>
+</head>
+<body class="bg-slate-900 text-gray-200 font-inter flex flex-col min-h-screen">
 
-    <nav class="navbar">
-        <div class="nav-container">
-             <a href="#" class="nav-logo">
-                <img src="logo.svg" alt="Future Self Logo" height="40">
-             </a>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="#testimonial-section" class="nav-link">Stories</a></li>
-                <li class="nav-item"><a href="#insights-section" class="nav-link">Insights</a></li>
-                <li class="nav-item"><a href="about.html" class="nav-link">About</a></li>
-                <li class="nav-item"><a href="https://forms.gle/fxrWSSNjG5sMyhdU9" target="_blank" rel="noopener noreferrer" class="nav-link">Feedback</a></li>
-                 <li class="nav-item">
-                    <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="nav-link donate-button">
-                        🌿 Support This Project
+    <nav class="bg-slate-800/80 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-slate-700">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0">
+                        <img src="https://placehold.co/130x35/1a1a2e/ffffff?text=FutureSelf" alt="Future Self Logo" class="h-8 w-auto rounded">
                     </a>
-                </li>
-            </ul>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#testimonial-section" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Stories</a>
+                        <a href="#insights-section" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Insights</a>
+                        <a href="#recommendations-section" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">For You</a>
+                        <a href="about.html" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">About</a>
+                        <a href="https://forms.gle/fxrWSSNjG5sMyhdU9" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Feedback</a>
+                        <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="bg-orange-500 hover:bg-orange-600 text-slate-900 font-semibold px-4 py-2 rounded-md text-sm shadow-md transition-colors donate-button">
+                            🌿 Support This Project
+                        </a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button type="button" id="mobile-menu-button" class="bg-slate-700 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="md:hidden hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#testimonial-section" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Stories</a>
+                <a href="#insights-section" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Insights</a>
+                <a href="#recommendations-section" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">For You</a>
+                <a href="about.html" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About</a>
+                <a href="https://forms.gle/fxrWSSNjG5sMyhdU9" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Feedback</a>
+                <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="bg-orange-500 hover:bg-orange-600 text-slate-900 font-semibold block px-3 py-2 rounded-md text-base shadow-md transition-colors donate-button">
+                    🌿 Support This Project
+                </a>
+            </div>
         </div>
     </nav>
 
-    <section id="testimonial-section" class="content-section testimonial-container">
-        <h2>Inspiring Stories</h2>
-        <p class="intro-text" style="text-align: center; margin-bottom: 2em; font-size: 1.1em; color: #ccc;">
-            Explore inspiring Joe Dispenza community testimonials. Filter by condition, method, or theme to find stories that resonate with your healing journey.
-        </p>
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section id="testimonial-section" class="bg-slate-800/50 p-6 rounded-xl shadow-xl mb-12">
+            <h2 class="text-3xl font-bold text-center text-white mb-3">Inspiring Stories</h2>
+            <p class="text-center text-gray-400 mb-8 max-w-2xl mx-auto">
+                Explore inspiring community testimonials. Filter by condition, journey stage, emotional tone, and more to find stories that resonate with your path.
+            </p>
 
-        <div id="filter-controls">
-            <div class="filter-group">
-                <h4>Filter by Condition (3+ stories):</h4>
-                <div id="condition-filters" class="filter-buttons">
-                    <span class="placeholder">Loading filters...</span>
-                    </div>
-                 <button class="show-more-filters" data-filter-type="condition" style="display: none;">Show More Conditions</button>
+            <div id="search-container" class="mb-6">
+                <input type="search" id="search-bar" placeholder="Search stories by keyword (e.g., 'anxiety', 'career change', 'hope')..." class="w-full p-3 rounded-lg border border-slate-600 bg-slate-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-colors">
             </div>
-            <div class="filter-group">
-                <h4>Filter by Method (5+ stories):</h4>
-                <div id="method-filters" class="filter-buttons">
+
+            <div id="filter-controls" class="bg-slate-700/50 p-4 md:p-6 rounded-lg mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Condition (3+ stories):</h4>
+                        <div id="condition-filters" class="filter-buttons space-x-1 space-y-1">
+                            <span class="text-gray-400 italic text-xs">Loading filters...</span>
+                        </div>
+                        <button class="show-more-filters text-sky-400 hover:text-sky-300 text-xs mt-1" data-filter-type="condition" style="display: none;">Show More Conditions</button>
                     </div>
-                 </div>
-             <div class="filter-group">
-                <h4>Filter by Theme:</h4>
-                <div id="theme-filters" class="filter-buttons">
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Method (5+ stories):</h4>
+                        <div id="method-filters" class="filter-buttons space-x-1 space-y-1"></div>
                     </div>
-                 </div>
-            <button id="clear-filters-btn" class="clear-button">Clear All Filters</button>
-        </div>
-
-        <div id="testimonial-grid" class="grid-container">
-            <p class="placeholder">Loading testimonials...</p>
-        </div>
-
-        <div id="show-more-container" class="show-more-container">
-            <button id="show-more-btn" class="insight-button" style="display: none;">Show More Stories</button>
-        </div>
-
-    </section>
-
-    <section id="insights-section" class="content-section insights-container">
-        <h2>Healing Insights</h2>
-        <div id="healing-fact" class="fact-card">
-            <p class="placeholder">Loading insights...</p>
-        </div>
-        <button id="next-insight-btn" class="insight-button">Show Another Insight</button>
-    </section>
-
-    <div id="video-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" aria-label="Close modal">×</span>
-            <h3 id="modal-title"></h3>
-            <div class="video-wrapper">
-                 <iframe id="video-iframe"
-                    width="560" height="315"
-                    src=""
-                    title="Testimonial Video"
-                    frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowfullscreen>
-                </iframe>
-            </div>
-             <div id="voice-tags-display" class="voice-tags">
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Theme:</h4>
+                        <div id="theme-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                     <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Journey Stage:</h4>
+                        <div id="journeyStage-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Transformation/Goal Type:</h4>
+                        <div id="transformationType-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Timeframe:</h4>
+                        <div id="timeframe-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Emotional Tone:</h4>
+                        <div id="emotion-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
                 </div>
-            <hr class="modal-divider">
-            <div class="modal-details">
-                <h4>Details:</h4>
-                <p id="modal-conditions-container" style="display: none;">
-                    <strong>Condition(s):</strong> <span id="modal-conditions"></span>
-                </p>
-                 <p id="modal-theme-container" style="display: none;">
-                    <strong>Theme(s):</strong> <span id="modal-theme"></span>
-                </p>
-                <div id="modal-methods">
+                <div class="mt-6 flex flex-wrap gap-2 items-center">
+                    <button id="clear-filters-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">Clear All Filters</button>
+                    <div id="saved-filters-controls" class="flex items-center gap-2">
+                        <button id="save-filters-btn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">Save Filters</button>
+                        <select id="load-saved-filter-dropdown" class="bg-slate-600 border border-slate-500 text-gray-200 text-sm rounded-md p-2 focus:ring-sky-500 focus:border-sky-500">
+                            <option value="">Load Saved Filter...</option>
+                        </select>
+                         <button id="manage-saved-filters-btn" class="px-3 py-2 bg-slate-500 hover:bg-slate-600 text-white text-xs font-medium rounded-md shadow-sm transition-colors">Manage</button>
                     </div>
-                 <div id="modal-outcomes">
-                    <h4>Outcomes:</h4>
+                </div>
+            </div>
+            
+            <div id="active-filters-display" class="mb-4 text-sm text-gray-400 min-h-[1.25rem]">
+                </div>
+
+            <div id="testimonial-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                <p class="placeholder-text col-span-full text-center py-10 text-gray-400">Loading testimonials...</p>
+            </div>
+
+            <div id="show-more-container" class="text-center mt-8">
+                <button id="show-more-btn" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-slate-900 font-semibold rounded-md shadow-md transition-colors" style="display: none;">Show More Stories</button>
+            </div>
+        </section>
+
+        <section id="recommendations-section" class="bg-slate-800/50 p-6 rounded-xl shadow-xl mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">Recommended For You</h2>
+                <button id="customize-recommendations-btn" class="text-xs text-sky-400 hover:text-sky-300">Customize</button>
+            </div>
+            <div id="recommendations-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <p class="placeholder-text col-span-full text-center py-10 text-gray-400">Loading recommendations...</p>
+            </div>
+             <div id="recommendation-consent-banner" class="mt-4 p-3 bg-sky-800/50 rounded-md text-sm text-sky-200 hidden">
+                Help us tailor recommendations! <button id="give-recommendation-consent-btn" class="font-semibold underline hover:text-white">Tell us your interests</button> or <button id="dismiss-recommendation-consent-btn" class="ml-2 text-xs opacity-70 hover:opacity-100">Dismiss</button>.
+            </div>
+        </section>
+
+        <section id="insights-section" class="bg-slate-800/50 p-6 rounded-xl shadow-xl max-w-3xl mx-auto text-center">
+            <h2 class="text-2xl font-bold text-white mb-6">Healing Insights</h2>
+            <div id="healing-fact" class="bg-slate-700/70 p-6 rounded-lg mb-6 min-h-[100px] text-left shadow">
+                <p class="placeholder-text text-gray-400">Loading insights...</p>
+            </div>
+            <button id="next-insight-btn" class="px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-md shadow-md transition-colors">Show Another Insight</button>
+        </section>
+    </main>
+
+    <div id="video-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[1001] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="bg-slate-800 text-gray-200 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative transform transition-all sm:my-8">
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <h3 id="modal-title" class="text-xl lg:text-2xl font-semibold text-white pr-10"></h3>
+                    <button type="button" class="close-button text-gray-400 hover:text-white transition-colors" aria-label="Close modal">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="mt-4 aspect-video bg-black rounded-lg overflow-hidden">
+                    <iframe id="video-iframe" class="w-full h-full" src="" title="Testimonial Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                </div>
+
+                <div id="voice-tags-display" class="mt-4 flex flex-wrap gap-2">
                     </div>
-                <p id="modal-moment-container" style="display: none;">
-                    <strong>Most Inspiring Moment:</strong> <span id="modal-moment"></span>
-                </p>
-                <div id="modal-quotes">
-                    <h4>Hope Driven Quotes:</h4>
+
+                <hr class="my-6 border-slate-700">
+
+                <div class="modal-details space-y-3 text-sm">
+                    <div id="modal-conditions-container" style="display: none;">
+                        <strong class="text-sky-300">Condition(s):</strong> <span id="modal-conditions" class="text-gray-300"></span>
                     </div>
+                    <div id="modal-theme-container" style="display: none;">
+                        <strong class="text-sky-300">Theme(s):</strong> <span id="modal-theme" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-journeyStage-container" style="display: none;">
+                        <strong class="text-sky-300">Journey Stage:</strong> <span id="modal-journeyStage" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-transformationType-container" style="display: none;">
+                        <strong class="text-sky-300">Transformation Type:</strong> <span id="modal-transformationType" class="text-gray-300"></span>
+                    </div>
+                     <div id="modal-timeframe-container" style="display: none;">
+                        <strong class="text-sky-300">Timeframe:</strong> <span id="modal-timeframe" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-emotionalTags-container" style="display: none;">
+                        <strong class="text-sky-300">Emotional Tone:</strong> <span id="modal-emotionalTags" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-methods" class="space-y-1"></div>
+                    <div id="modal-outcomes" class="space-y-1"></div>
+                    <div id="modal-moment-container" style="display: none;">
+                        <strong class="text-sky-300">Most Inspiring Moment:</strong> <span id="modal-moment" class="text-gray-300 italic"></span>
+                    </div>
+                    <div id="modal-quotes" class="space-y-2"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer class="site-footer">
-        <p class="footer-links">
-            <a href="privacy.html">Privacy Policy</a> | <a href="terms.html">Terms of Use</a>
-        </p>
+    <div id="personalization-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[1002] hidden">
+        <div class="bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h4 class="text-lg font-semibold text-white mb-4">Customize Your Experience</h4>
+            <p class="text-sm text-gray-300 mb-4">Help us show you more relevant stories by telling us your interests. This is optional and you can change it anytime.</p>
+            <div id="interests-selection" class="space-y-2 mb-4">
+                <label class="block text-sm font-medium text-sky-300">What are you focusing on?</label>
+                <div><input type="checkbox" id="interest-career" value="Career" class="form-checkbox rounded text-sky-500"> <label for="interest-career" class="ml-2 text-gray-300">Career</label></div>
+                <div><input type="checkbox" id="interest-health" value="Health & Wellness" class="form-checkbox rounded text-sky-500"> <label for="interest-health" class="ml-2 text-gray-300">Health & Wellness</label></div>
+                <div><input type="checkbox" id="interest-growth" value="Personal Growth" class="form-checkbox rounded text-sky-500"> <label for="interest-growth" class="ml-2 text-gray-300">Personal Growth</label></div>
+                </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-personalization-btn" class="px-4 py-2 text-sm text-gray-300 hover:bg-slate-700 rounded-md">Skip</button>
+                <button id="save-personalization-btn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-md">Save Preferences</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="manage-saved-filters-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[1002] hidden">
+        <div class="bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h4 class="text-lg font-semibold text-white mb-4">Manage Saved Filters</h4>
+            <div id="saved-filters-list" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                <p class="text-gray-400 text-sm">No filters saved yet.</p>
+            </div>
+            <div class="flex justify-end">
+                <button id="close-manage-saved-filters-btn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-md">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="bg-slate-800/50 border-t border-slate-700 mt-auto">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-400 text-sm">
+            <p class="footer-links">
+                <a href="privacy.html" class="hover:text-sky-400 transition-colors">Privacy Policy</a> | 
+                <a href="terms.html" class="hover:text-sky-400 transition-colors">Terms of Use</a>
+            </p>
+            <p class="mt-2">&copy; <span id="current-year"></span> FutureSelf.space. All rights reserved.</p>
+        </div>
     </footer>
 
-    <div id="cookieConsentBanner" class="cookie-consent-banner">
-        <p>
-            This website uses cookies (specifically Google Analytics) to analyze traffic and improve your experience. By continuing to use this site, you acknowledge this use. Learn more in our <a href="privacy.html">Privacy Policy</a>.
-            <button id="cookieConsentAccept" class="cookie-accept-btn">Got it!</button>
-        </p>
+    <div id="cookieConsentBanner" class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 p-4 shadow-lg z-[1010] hidden">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p class="text-sm text-gray-300">
+                This website uses cookies (specifically Google Analytics) to analyze traffic and improve your experience. By continuing to use this site, you acknowledge this use. Learn more in our <a href="privacy.html" class="text-sky-400 hover:underline">Privacy Policy</a>.
+            </p>
+            <button id="cookieConsentAccept" class="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-md shadow-sm whitespace-nowrap transition-colors">Got it!</button>
+        </div>
     </div>
 
     <script src="script.js"></script>
