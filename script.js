@@ -1,641 +1,256 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM Elements ---
-    const filterControls = document.getElementById('filter-controls');
-    const conditionFiltersContainer = document.getElementById('condition-filters');
-    const methodFiltersContainer = document.getElementById('method-filters');
-    const themeFiltersContainer = document.getElementById('theme-filters');
-    const clearFiltersBtn = document.getElementById('clear-filters-btn');
-    const testimonialGrid = document.getElementById('testimonial-grid');
-    const showMoreContainer = document.getElementById('show-more-container');
-    const showMoreBtn = document.getElementById('show-more-btn');
-    const healingFactContainer = document.getElementById('healing-fact');
-    const nextInsightBtn = document.getElementById('next-insight-btn');
-    const modal = document.getElementById('video-modal');
-    const modalCloseBtn = modal ? modal.querySelector('.close-button') : null;
-    const videoIframe = document.getElementById('video-iframe');
-    const voiceTagsDisplay = document.getElementById('voice-tags-display');
-    // Modal content elements
-    const modalTitle = document.getElementById('modal-title');
-    const modalConditionsContainer = document.getElementById('modal-conditions-container');
-    const modalConditions = document.getElementById('modal-conditions');
-    const modalThemeContainer = document.getElementById('modal-theme-container'); // Added Theme container
-    const modalTheme = document.getElementById('modal-theme'); // Added Theme span
-    const modalMethods = document.getElementById('modal-methods');
-    const modalOutcomes = document.getElementById('modal-outcomes');
-    const modalMomentContainer = document.getElementById('modal-moment-container');
-    const modalMoment = document.getElementById('modal-moment');
-    const modalQuotes = document.getElementById('modal-quotes');
-    // Cookie Banner Elements
-    const consentBanner = document.getElementById('cookieConsentBanner');
-    const acceptButton = document.getElementById('cookieConsentAccept');
-    // Show More Filters Button (specific to conditions for now)
-    const showMoreConditionsBtn = document.querySelector('.show-more-filters[data-filter-type="condition"]');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Self - Stories & Insights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      // We will call gtag('js', new Date()); and gtag('config', 'G-FRDXP452X5'); from script.js after consent
+    </script>
+</head>
+<body class="bg-slate-900 text-gray-200 font-inter flex flex-col min-h-screen">
 
-
-    // --- Check if Essential Elements Exist ---
-    // Add checks for new elements like showMoreConditionsBtn
-    if (!filterControls || !conditionFiltersContainer || !methodFiltersContainer || !themeFiltersContainer || !clearFiltersBtn || !testimonialGrid || !showMoreContainer || !showMoreBtn || !healingFactContainer || !nextInsightBtn || !modal || !modalCloseBtn || !videoIframe || !voiceTagsDisplay || !modalTitle || !modalConditionsContainer || !modalConditions || !modalThemeContainer || !modalTheme || !modalMethods || !modalOutcomes || !modalMomentContainer || !modalMoment || !modalQuotes || !consentBanner || !acceptButton || !showMoreConditionsBtn) {
-        console.error('Essential UI elements not found! Check HTML IDs and structure.');
-        // Avoid wiping the grid if it exists but other elements are missing
-        // if (testimonialGrid) testimonialGrid.innerHTML = '<p class="error-message">Error loading page structure. Please try again later.</p>';
-        return; // Stop script execution if critical elements are missing
-    }
-
-    // --- State Variables ---
-    let testimonialsData = []; // Holds the original full dataset
-    let filteredTestimonials = []; // Holds the currently filtered dataset
-    let factsData = { healing_insights: [] };
-    let currentFactIndex = -1; // Start at -1 to ensure first random pick works
-    let activeFilters = { condition: null, method: null, theme: null };
-    const ITEMS_PER_PAGE = 9; // Number of items to show per page/click
-    let itemsToShow = ITEMS_PER_PAGE; // Track how many items are currently visible
-    const MAX_CONDITIONS_VISIBLE = 10; // Max condition filters to show initially
-
-    // --- Fetch Data ---
-    function fetchData() {
-        // Clear placeholders initially
-        testimonialGrid.innerHTML = '<p class="placeholder">Loading testimonials...</p>';
-        healingFactContainer.innerHTML = '<p class="placeholder">Loading insights...</p>';
-        conditionFiltersContainer.innerHTML = '<span class="placeholder">Loading filters...</span>';
-        methodFiltersContainer.innerHTML = ''; // Clear other filter placeholders too
-        themeFiltersContainer.innerHTML = '';
-        showMoreBtn.style.display = 'none'; // Hide button initially
-        showMoreConditionsBtn.style.display = 'none'; // Hide initially
-
-        // Fetch testimonials and facts data
-        const testimonialsPromise = fetch('final_db_clustered_tagged_cleaned.json')
-            .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! status: ${response.status}`))
-            .catch(error => {
-                console.error('Error fetching testimonials:', error);
-                if (testimonialGrid) testimonialGrid.innerHTML = '<p class="error-message">Could not load testimonials. Check file path and JSON format.</p>';
-                return []; // Return empty array on error
-            });
-
-        const factsPromise = fetch('facts.json')
-            .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! status: ${response.status}`))
-            .catch(error => {
-                console.error('Error fetching facts:', error);
-                if (healingFactContainer) healingFactContainer.innerHTML = '<p class="error-message">Could not load insights. Check file path and JSON format.</p>';
-                return { healing_insights: [] }; // Return object with empty array on error
-            });
-
-        // Process data once both fetches complete
-        Promise.all([testimonialsPromise, factsPromise])
-            .then(([testimonials, facts]) => {
-                testimonialsData = testimonials;
-                filteredTestimonials = testimonials; // Initially, filtered is all data
-                factsData = facts;
-
-                // Initialize UI based on fetched data
-                if (testimonialsData.length > 0) {
-                    populateFilters(); // Populate filters based on thresholds
-                    renderTestimonialGrid(); // Render initial batch of testimonials
-                } else if (!testimonialGrid.querySelector('.error-message')) {
-                    testimonialGrid.innerHTML = '<p>No testimonials available.</p>';
-                }
-
-                if (factsData.healing_insights.length > 0) {
-                    displayRandomFact(); // Display initial random fact
-                } else if (!healingFactContainer.querySelector('.error-message')) {
-                    healingFactContainer.innerHTML = '<p>No insights available.</p>';
-                }
-            });
-    }
-
-    // --- Filter Logic ---
-
-    // Helper to get unique, flattened, non-empty values from data for a specific key
-    function getUniqueFilterValues(data, key, subKey = null) {
-        const allValues = data.flatMap(item => {
-            const value = item[key];
-            if (!value) return []; // Handle missing key
-            if (subKey && Array.isArray(value)) {
-                // Ensure we handle cases where elements in the array might not be objects
-                return value.map(subItem => (typeof subItem === 'object' && subItem !== null) ? subItem[subKey] : null).filter(Boolean);
-            }
-            // If it's already an array but no subKey, return it as is (or wrap single value in array)
-            return Array.isArray(value) ? value : [value];
-        });
-        // Get unique, filter out any remaining falsy values (like empty strings)
-        return [...new Set(allValues)].filter(value => value);
-    }
-
-    // Helper to count occurrences of filter values across all testimonials
-    function countOccurrences(data, key, subKey = null) {
-        const counts = {};
-        data.forEach(item => {
-            let values = item[key];
-            if (!values) return; // Skip if key is missing
-
-            // Ensure values is an array to iterate over
-            if (!Array.isArray(values)) {
-                values = [values];
-            }
-
-            // Extract subKey if needed and handle potential non-objects in array
-            if (subKey) {
-                 values = values.map(subItem => (typeof subItem === 'object' && subItem !== null) ? subItem[subKey] : null).filter(Boolean);
-            }
-
-            // Use a Set to count each value only once per testimonial item
-            const uniqueValuesPerItem = new Set(values);
-            uniqueValuesPerItem.forEach(value => {
-                if (value) { // Ensure value is not empty/null
-                    counts[value] = (counts[value] || 0) + 1;
-                }
-            });
-        });
-        return counts;
-    }
-
-    // Populates filter buttons based on data and thresholds
-    function populateFilters() {
-        // Get all unique values first
-        const allUniqueConditions = getUniqueFilterValues(testimonialsData, 'conditions');
-        const allUniqueMethods = getUniqueFilterValues(testimonialsData, 'methods', 'name'); // Extract 'name' from method objects
-        const allUniqueThemes = getUniqueFilterValues(testimonialsData, 'theme');
-
-        // Count occurrences in the original data
-        const conditionCounts = countOccurrences(testimonialsData, 'conditions');
-        const methodCounts = countOccurrences(testimonialsData, 'methods', 'name');
-
-        // Apply thresholds
-        const filteredConditions = allUniqueConditions.filter(condition => conditionCounts[condition] >= 3);
-        const filteredMethods = allUniqueMethods.filter(method => methodCounts[method] >= 5);
-        const filteredThemes = allUniqueThemes; // No threshold for themes
-
-        // Clear placeholders before adding buttons
-        conditionFiltersContainer.innerHTML = '';
-        methodFiltersContainer.innerHTML = '';
-        themeFiltersContainer.innerHTML = '';
-
-        // Create buttons only for values meeting the threshold
-        createFilterButtons(filteredConditions, conditionFiltersContainer, 'condition', MAX_CONDITIONS_VISIBLE);
-        // Populate others normally
-        createFilterButtons(filteredMethods, methodFiltersContainer, 'method');
-        createFilterButtons(filteredThemes, themeFiltersContainer, 'theme');
-    }
-
-    // Creates and appends filter buttons to the specified container, handling visibility limit
-    function createFilterButtons(values, container, filterType, limit = null) {
-         if (!container) return; // Safety check
-         if (values.length === 0) {
-            // Provide a clearer message if no filters meet the criteria
-            container.innerHTML = `<span class="placeholder">No common ${filterType}s found meeting criteria.</span>`;
-             // Ensure show more button for this type is hidden
-             const showMoreBtnForType = document.querySelector(`.show-more-filters[data-filter-type="${filterType}"]`);
-             if (showMoreBtnForType) showMoreBtnForType.style.display = 'none';
-            return;
-        }
-        // Sort values alphabetically for consistent order
-        values.sort().forEach((value, index) => {
-            const button = document.createElement('button');
-            button.textContent = value;
-            button.dataset.filterType = filterType; // Store filter type
-            button.dataset.filterValue = value; // Store filter value
-            button.addEventListener('click', handleFilterClick); // Add click listener
-            // Hide button if limit is set and index exceeds it
-            if (limit !== null && index >= limit) {
-                button.classList.add('filter-button-hidden');
-            }
-            container.appendChild(button);
-        });
-
-        // Show the "Show More" button if limit was applied and there are hidden buttons
-        const showMoreBtnForType = document.querySelector(`.show-more-filters[data-filter-type="${filterType}"]`);
-        if (showMoreBtnForType) {
-            if (limit !== null && values.length > limit) {
-                showMoreBtnForType.style.display = 'block'; // Show the button
-            } else {
-                showMoreBtnForType.style.display = 'none'; // Hide the button
-            }
-        }
-    }
-
-     // Add listener for the "Show More Conditions" button
-     if (showMoreConditionsBtn) {
-        showMoreConditionsBtn.addEventListener('click', (event) => {
-            const filterType = event.target.dataset.filterType;
-            const container = document.getElementById(`${filterType}-filters`);
-            if (container) {
-                // Remove the hidden class from all buttons within this container
-                container.querySelectorAll('.filter-button-hidden').forEach(btn => {
-                    btn.classList.remove('filter-button-hidden');
-                });
-            }
-            event.target.style.display = 'none'; // Hide the "Show More" button itself
-        });
-    }
-
-
-    // Handles clicks on filter buttons
-    function handleFilterClick(event) {
-        const button = event.target;
-        const filterType = button.dataset.filterType;
-        const filterValue = button.dataset.filterValue;
-        const filterGroupContainer = button.parentElement;
-        const currentlyActive = filterGroupContainer.querySelector('button.active');
-
-        // Toggle logic: If clicking active button, deactivate. Otherwise, activate clicked, deactivate others in group.
-        if (currentlyActive && currentlyActive === button) {
-            button.classList.remove('active');
-            activeFilters[filterType] = null; // Clear this filter type
-        } else {
-            if (currentlyActive) currentlyActive.classList.remove('active'); // Deactivate sibling
-            button.classList.add('active'); // Activate clicked
-            activeFilters[filterType] = filterValue; // Set this filter type
-        }
-        applyFiltersAndRender(); // Apply filters and re-render the grid
-    }
-
-    // Handles click on the "Clear All Filters" button
-    clearFiltersBtn.addEventListener('click', () => {
-        // Reset active filters object
-        activeFilters = { condition: null, method: null, theme: null };
-        // Remove 'active' class from all filter buttons visually
-        document.querySelectorAll('#filter-controls button.active').forEach(btn => btn.classList.remove('active'));
-
-        // Reset visibility of condition filters
-        if (conditionFiltersContainer) {
-            conditionFiltersContainer.querySelectorAll('button').forEach((btn, index) => {
-                btn.classList.toggle('filter-button-hidden', index >= MAX_CONDITIONS_VISIBLE);
-            });
-        }
-        // Show 'Show More Conditions' button again if needed
-        const numConditions = conditionFiltersContainer ? conditionFiltersContainer.querySelectorAll('button').length : 0;
-        if (showMoreConditionsBtn) {
-             showMoreConditionsBtn.style.display = (numConditions > MAX_CONDITIONS_VISIBLE) ? 'block' : 'none';
-        }
-
-        // Apply empty filters (shows all data) and re-render the grid
-        applyFiltersAndRender();
-    });
-
-    // Filters the main data based on activeFilters and triggers grid rendering
-    function applyFiltersAndRender() {
-         if (!testimonialGrid) return; // Safety check
-         testimonialGrid.classList.add('grid-loading'); // Add loading class for visual feedback
-
-        // Filter the original testimonialsData
-        filteredTestimonials = testimonialsData.filter(item => {
-            // Check condition match
-            const conditionMatch = !activeFilters.condition ||
-                (Array.isArray(item.conditions) && item.conditions.includes(activeFilters.condition));
-
-            // Check method match (handles methods being array of objects with 'name')
-            const methodMatch = !activeFilters.method ||
-                (Array.isArray(item.methods) && item.methods.some(m => typeof m === 'object' && m !== null && m.name === activeFilters.method));
-
-            // Check theme match
-            const themeMatch = !activeFilters.theme ||
-                (Array.isArray(item.theme) && item.theme.includes(activeFilters.theme));
-
-            // Item passes if all active filters match (or if filter is not active)
-            return conditionMatch && methodMatch && themeMatch;
-        });
-
-        itemsToShow = ITEMS_PER_PAGE; // Reset pagination to show the first page
-        renderTestimonialGrid(); // Render the filtered results
-
-        // Remove loading state after a short delay for visual effect
-        setTimeout(() => {
-            if (testimonialGrid) testimonialGrid.classList.remove('grid-loading');
-        }, 150); // Adjust delay as needed
-    }
-
-
-    // --- Grid Rendering & Pagination ---
-
-    // Renders the testimonial cards in the grid based on filteredTestimonials and itemsToShow
-    function renderTestimonialGrid() {
-        if (!testimonialGrid) return; // Safety check
-        testimonialGrid.innerHTML = ''; // Clear previous grid content
-
-        // Display message if no testimonials match filters
-        if (filteredTestimonials.length === 0) {
-            testimonialGrid.innerHTML = '<p class="placeholder">No testimonials match the current filters.</p>';
-            if (showMoreBtn) showMoreBtn.style.display = 'none'; // Hide button if no results
-            return;
-        }
-
-        // Determine the slice of data to display based on pagination
-        const dataSlice = filteredTestimonials.slice(0, itemsToShow);
-
-        // Create and append cards for the data slice
-        dataSlice.forEach(item => {
-             // Find the original index of the item in the full testimonialsData array
-             // Using URL as a unique identifier for reliable lookup
-             const originalIndex = testimonialsData.findIndex(originalItem => originalItem.url === item.url);
-             if (originalIndex === -1) {
-                 console.warn("Could not find original index for item:", item.title);
-                 return; // Skip if we can't find the original item
-             }
-
-            // Create card element
-            const card = document.createElement('div');
-            card.className = 'testimonial-card';
-            card.dataset.index = originalIndex; // Store the ORIGINAL index
-
-            // Prepare card content, handle N/A or missing data
-            const imageUrl = item.thumbnail_url || 'https://placehold.co/300x180/eee/ccc?text=No+Image';
-            const title = item.title || 'Untitled Testimonial';
-            // Get first quote, handle missing quotes
-            const quote = (Array.isArray(item.hope_driven_quotes) && item.hope_driven_quotes.length > 0) ? item.hope_driven_quotes[0] : null;
-            // Get first 2 non-empty voice tags
-            const tags = (Array.isArray(item.voice_tags) && item.voice_tags.length > 0)
-                       ? item.voice_tags.filter(t => t && t.trim()).slice(0, 2)
-                       : null;
-
-            // Generate card HTML (showing quote and tags, hiding condition/theme)
-            card.innerHTML = `
-                <img src="${imageUrl}" alt="${title}" loading="lazy">
-                <h4>${title}</h4>
-                <div class="card-content">
-                    ${quote ? `<p class="card-quote">"${quote}"</p>` : '<p class="card-quote" style="opacity: 0.5;"><em>No quote available.</em></p>'}
-                    ${tags ? `<div class="card-tags">${tags.map(tag => `<span>${tag}</span>`).join('')}</div>` : ''}
+    <nav class="bg-slate-800/80 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-slate-700">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0">
+                        <img src="https://placehold.co/130x35/1a1a2e/ffffff?text=FutureSelf" alt="Future Self Logo" class="h-8 w-auto rounded">
+                    </a>
                 </div>
-            `;
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#testimonial-section" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Stories</a>
+                        <a href="#insights-section" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Insights</a>
+                        <a href="#recommendations-section" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">For You</a>
+                        <a href="about.html" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">About</a>
+                        <a href="https://forms.gle/fxrWSSNjG5sMyhdU9" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Feedback</a>
+                        <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="bg-orange-500 hover:bg-orange-600 text-slate-900 font-semibold px-4 py-2 rounded-md text-sm shadow-md transition-colors donate-button">
+                            🌿 Support This Project
+                        </a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button type="button" id="mobile-menu-button" class="bg-slate-700 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="md:hidden hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#testimonial-section" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Stories</a>
+                <a href="#insights-section" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Insights</a>
+                <a href="#recommendations-section" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">For You</a>
+                <a href="about.html" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About</a>
+                <a href="https://forms.gle/fxrWSSNjG5sMyhdU9" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Feedback</a>
+                <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="bg-orange-500 hover:bg-orange-600 text-slate-900 font-semibold block px-3 py-2 rounded-md text-base shadow-md transition-colors donate-button">
+                    🌿 Support This Project
+                </a>
+            </div>
+        </div>
+    </nav>
 
-            // Add click listener to the entire card
-            card.addEventListener('click', () => handleCardClick(originalIndex)); // Pass original index to modal handler
-            testimonialGrid.appendChild(card);
-        });
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section id="testimonial-section" class="bg-slate-800/50 p-6 rounded-xl shadow-xl mb-12">
+            <h2 class="text-3xl font-bold text-center text-white mb-3">Inspiring Stories</h2>
+            <p class="text-center text-gray-400 mb-8 max-w-2xl mx-auto">
+                Explore inspiring community testimonials. Filter by condition, journey stage, emotional tone, and more to find stories that resonate with your path.
+            </p>
 
-        // Show or hide the "Show More" button based on remaining items
-        if (showMoreBtn) {
-            if (filteredTestimonials.length > itemsToShow) {
-                showMoreBtn.style.display = 'inline-block';
-            } else {
-                showMoreBtn.style.display = 'none';
-            }
-        }
-    }
+            <div id="search-container" class="mb-6">
+                <input type="search" id="search-bar" placeholder="Search stories by keyword (e.g., 'anxiety', 'career change', 'hope')..." class="w-full p-3 rounded-lg border border-slate-600 bg-slate-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-colors">
+            </div>
 
-    // Event listener for "Show More" testimonials button
-    if (showMoreBtn) {
-        showMoreBtn.addEventListener('click', () => {
-            itemsToShow += ITEMS_PER_PAGE; // Increase number of items to show
-            renderTestimonialGrid(); // Re-render the grid with more items
-        });
-    }
+            <div id="filter-controls" class="bg-slate-700/50 p-4 md:p-6 rounded-lg mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Condition (3+ stories):</h4>
+                        <div id="condition-filters" class="filter-buttons space-x-1 space-y-1">
+                            <span class="text-gray-400 italic text-xs">Loading filters...</span>
+                        </div>
+                        <button class="show-more-filters text-sky-400 hover:text-sky-300 text-xs mt-1" data-filter-type="condition" style="display: none;">Show More Conditions</button>
+                    </div>
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Method (5+ stories):</h4>
+                        <div id="method-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Theme:</h4>
+                        <div id="theme-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                     <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Journey Stage:</h4>
+                        <div id="journeyStage-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Transformation/Goal Type:</h4>
+                        <div id="transformationType-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Timeframe:</h4>
+                        <div id="timeframe-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                    <div class="filter-group">
+                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Emotional Tone:</h4>
+                        <div id="emotion-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                    </div>
+                </div>
+                <div class="mt-6 flex flex-wrap gap-2 items-center">
+                    <button id="clear-filters-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">Clear All Filters</button>
+                    <div id="saved-filters-controls" class="flex items-center gap-2">
+                        <button id="save-filters-btn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">Save Filters</button>
+                        <select id="load-saved-filter-dropdown" class="bg-slate-600 border border-slate-500 text-gray-200 text-sm rounded-md p-2 focus:ring-sky-500 focus:border-sky-500">
+                            <option value="">Load Saved Filter...</option>
+                        </select>
+                         <button id="manage-saved-filters-btn" class="px-3 py-2 bg-slate-500 hover:bg-slate-600 text-white text-xs font-medium rounded-md shadow-sm transition-colors">Manage</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="active-filters-display" class="mb-4 text-sm text-gray-400 min-h-[1.25rem]">
+                </div>
 
+            <div id="testimonial-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                <p class="placeholder-text col-span-full text-center py-10 text-gray-400">Loading testimonials...</p>
+            </div>
 
-    // --- Modal Logic ---
+            <div id="show-more-container" class="text-center mt-8">
+                <button id="show-more-btn" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-slate-900 font-semibold rounded-md shadow-md transition-colors" style="display: none;">Show More Stories</button>
+            </div>
+        </section>
 
-    // Handles clicks on testimonial cards to open and populate the modal
-    function handleCardClick(index) {
-        // Retrieve the full data using the original index from testimonialsData
-        const testimonial = testimonialsData[index];
-        if (!testimonial || !modal) return; // Safety checks
+        <section id="recommendations-section" class="bg-slate-800/50 p-6 rounded-xl shadow-xl mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">Recommended For You</h2>
+                <button id="customize-recommendations-btn" class="text-xs text-sky-400 hover:text-sky-300">Customize</button>
+            </div>
+            <div id="recommendations-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <p class="placeholder-text col-span-full text-center py-10 text-gray-400">Loading recommendations...</p>
+            </div>
+             <div id="recommendation-consent-banner" class="mt-4 p-3 bg-sky-800/50 rounded-md text-sm text-sky-200 hidden">
+                Help us tailor recommendations! <button id="give-recommendation-consent-btn" class="font-semibold underline hover:text-white">Tell us your interests</button> or <button id="dismiss-recommendation-consent-btn" class="ml-2 text-xs opacity-70 hover:opacity-100">Dismiss</button>.
+            </div>
+        </section>
 
-        // Populate Modal Title
-        if (modalTitle) modalTitle.textContent = testimonial.title || 'Testimonial Details';
+        <section id="insights-section" class="bg-slate-800/50 p-6 rounded-xl shadow-xl max-w-3xl mx-auto text-center">
+            <h2 class="text-2xl font-bold text-white mb-6">Healing Insights</h2>
+            <div id="healing-fact" class="bg-slate-700/70 p-6 rounded-lg mb-6 min-h-[100px] text-left shadow">
+                <p class="placeholder-text text-gray-400">Loading insights...</p>
+            </div>
+            <button id="next-insight-btn" class="px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-md shadow-md transition-colors">Show Another Insight</button>
+        </section>
+    </main>
 
-        // Populate Video Iframe Source (with embed URL logic)
-        if (videoIframe && testimonial.url) {
-            let embedUrl = testimonial.url; // Default assumption
-             try {
-                 // Check for standard YouTube watch URL
-                 if (testimonial.url.includes("youtube.com/watch")) {
-                    const urlObj = new URL(testimonial.url);
-                    const videoId = urlObj.searchParams.get('v');
-                    if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                }
-                // Check for YouTube short URL (youtu.be)
-                else if (testimonial.url.includes("youtu.be/")) {
-                    const urlObj = new URL(testimonial.url);
-                    const pathSegments = urlObj.pathname.split('/');
-                    const videoId = pathSegments[pathSegments.length - 1]; // Get last part of path
-                     if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                }
-                 // Add more platform checks here if needed (e.g., Vimeo)
-            } catch (e) {
-                console.error("Error parsing video URL:", testimonial.url, e);
-            }
-            videoIframe.src = embedUrl;
-        } else if (videoIframe) {
-             videoIframe.src = ''; // Clear src if no URL provided
-        }
+    <div id="video-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[1001] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="bg-slate-800 text-gray-200 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative transform transition-all sm:my-8">
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <h3 id="modal-title" class="text-xl lg:text-2xl font-semibold text-white pr-10"></h3>
+                    <button type="button" class="close-button text-gray-400 hover:text-white transition-colors" aria-label="Close modal">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
 
-        // Populate Voice Tags Display
-        if (voiceTagsDisplay) {
-            voiceTagsDisplay.innerHTML = ''; // Clear previous tags
-            if (Array.isArray(testimonial.voice_tags) && testimonial.voice_tags.length > 0) {
-                testimonial.voice_tags.forEach(tag => {
-                    if (tag && tag.trim()) { // Ensure tag is not null/empty
-                        const tagElement = document.createElement('span');
-                        tagElement.textContent = tag.trim();
-                        voiceTagsDisplay.appendChild(tagElement);
-                    }
-                });
-            } else {
-                voiceTagsDisplay.innerHTML = '<span>No voice tags available</span>'; // Provide fallback text
-            }
-        }
+                <div class="mt-4 aspect-video bg-black rounded-lg overflow-hidden">
+                    <iframe id="video-iframe" class="w-full h-full" src="" title="Testimonial Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                </div>
 
-        // ** Populate Modal Details Conditionally (Hide if N/A or missing) **
+                <div id="voice-tags-display" class="mt-4 flex flex-wrap gap-2">
+                    </div>
 
-        // Helper function to populate a simple text detail and hide its container if value is invalid
-        function populateDetail(containerElement, textElement, value) {
-            if (!containerElement || !textElement) return; // Safety check
-            const textValue = Array.isArray(value) ? value.join(', ') : value; // Join arrays if needed
-            // Check if value exists and is not considered N/A
-            if (textValue && textValue !== 'N/A' && textValue !== 'unknown') {
-                textElement.textContent = textValue;
-                containerElement.style.display = 'block'; // Show the container paragraph
-            } else {
-                containerElement.style.display = 'none'; // Hide the container paragraph
-            }
-        }
+                <hr class="my-6 border-slate-700">
 
-        // Helper function to populate list details (Methods, Outcomes, Quotes)
-        function populateListDetail(containerElement, title, values, renderFn) {
-             if (!containerElement) return; // Safety check
-            containerElement.innerHTML = ''; // Clear previous content
-            const list = document.createElement('ul');
-            let itemsFound = false; // Flag to track if any valid items were added
-            if (Array.isArray(values) && values.length > 0) {
-                values.forEach(item => {
-                    const li = renderFn(item); // Use provided function to create li
-                    if (li) { // Check if renderFn returned a valid list item
-                        list.appendChild(li);
-                        itemsFound = true; // Mark that we found at least one item
-                    }
-                });
-            }
-            // Only show the section if valid items were found
-            if (itemsFound) {
-                containerElement.innerHTML = `<h4>${title}</h4>`; // Add title
-                containerElement.appendChild(list);
-                containerElement.style.display = 'block'; // Show section
-            } else {
-                containerElement.style.display = 'none'; // Hide section if no valid items
-            }
-        }
+                <div class="modal-details space-y-3 text-sm">
+                    <div id="modal-conditions-container" style="display: none;">
+                        <strong class="text-sky-300">Condition(s):</strong> <span id="modal-conditions" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-theme-container" style="display: none;">
+                        <strong class="text-sky-300">Theme(s):</strong> <span id="modal-theme" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-journeyStage-container" style="display: none;">
+                        <strong class="text-sky-300">Journey Stage:</strong> <span id="modal-journeyStage" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-transformationType-container" style="display: none;">
+                        <strong class="text-sky-300">Transformation Type:</strong> <span id="modal-transformationType" class="text-gray-300"></span>
+                    </div>
+                     <div id="modal-timeframe-container" style="display: none;">
+                        <strong class="text-sky-300">Timeframe:</strong> <span id="modal-timeframe" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-emotionalTags-container" style="display: none;">
+                        <strong class="text-sky-300">Emotional Tone:</strong> <span id="modal-emotionalTags" class="text-gray-300"></span>
+                    </div>
+                    <div id="modal-methods" class="space-y-1"></div>
+                    <div id="modal-outcomes" class="space-y-1"></div>
+                    <div id="modal-moment-container" style="display: none;">
+                        <strong class="text-sky-300">Most Inspiring Moment:</strong> <span id="modal-moment" class="text-gray-300 italic"></span>
+                    </div>
+                    <div id="modal-quotes" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Populate specific modal fields using helpers
-        populateDetail(modalConditionsContainer, modalConditions, testimonial.conditions);
-        populateDetail(modalThemeContainer, modalTheme, testimonial.theme); // Populate Theme here
-        populateDetail(modalMomentContainer, modalMoment, testimonial.most_inspiring_moment);
-
-        populateListDetail(modalMethods, 'Methods Used', testimonial.methods, (method) => {
-            let methodText = null;
-            // Handle method being object or string
-            if (typeof method === 'object' && method !== null && method.name) {
-                methodText = `${method.name}${method.efficacy_score ? ` (Efficacy: ${method.efficacy_score}/10)` : ''}`;
-            } else if (typeof method === 'string' && method.trim()) {
-                 methodText = method;
-            }
-            // Create list item only if text is valid
-            if (methodText) {
-                const li = document.createElement('li');
-                li.textContent = methodText;
-                return li;
-            }
-            return null; // Return null for invalid items
-        });
-
-        populateListDetail(modalOutcomes, 'Outcomes', testimonial.method_outcomes ? Object.entries(testimonial.method_outcomes) : [], (outcomeEntry) => {
-             const [key, value] = outcomeEntry; // Key is 'physical' or 'emotional'
-             if (value) { // Only show if outcome value exists
-                 const li = document.createElement('li');
-                 const label = key.charAt(0).toUpperCase() + key.slice(1); // Capitalize label
-                 li.innerHTML = `<strong>${label}:</strong> ${value}`;
-                 return li;
-             }
-             return null; // Return null if value is missing
-        });
-
-        populateListDetail(modalQuotes, 'Hope Driven Quotes', testimonial.hope_driven_quotes, (quote) => {
-            if (quote && quote.trim()) { // Ensure quote is not empty
-                const li = document.createElement('li');
-                li.textContent = `"${quote.trim()}"`;
-                return li;
-            }
-            return null; // Return null for empty quotes
-        });
-
-        // Display the modal
-        modal.style.display = 'flex'; // Use flex to enable centering defined in CSS
-    }
-
-    // Closes the modal and stops video playback
-    function closeModal() {
-        if (!modal || !videoIframe) return; // Safety check
-        modal.style.display = 'none'; // Hide modal
-        videoIframe.src = ''; // Stop video playback by clearing src
-    }
-
-    // --- Healing Insights Logic ---
-
-    // Displays a fact at the given index, hiding N/A values
-    function displayFact(index) {
-        // Ensure container and data exist
-        if (!healingFactContainer || !factsData.healing_insights || factsData.healing_insights.length === 0) {
-           if (healingFactContainer && !healingFactContainer.querySelector('.error-message')) {
-                 healingFactContainer.innerHTML = '<p>No insights available.</p>';
-            }
-           return; // Exit if no facts or container
-        }
-        // Ensure index is valid after random pick or increment
-        const safeIndex = Math.max(0, Math.min(index, factsData.healing_insights.length - 1));
-        const fact = factsData.healing_insights[safeIndex];
-        if (!fact) { // Extra safety check
-             console.error("Invalid fact index:", index, "Mapped to:", safeIndex);
-             return;
-        }
-        currentFactIndex = safeIndex; // Store the currently displayed index
-
-        // Construct HTML safely, checking if values exist and are meaningful before including
-        let factHTML = `<h3>${fact.title || 'Insight'}</h3>`;
-        // Only add paragraphs if the content exists and is not 'N/A' or 'unknown'
-        if (fact.stat && fact.stat !== 'N/A' && fact.stat !== 'unknown') factHTML += `<p class="fact-stat">${fact.stat}</p>`;
-        if (fact.quote && fact.quote !== 'N/A' && fact.quote !== 'unknown') factHTML += `<p class="fact-quote">"${fact.quote}"</p>`;
-        if (fact.action && fact.action !== 'N/A' && fact.action !== 'unknown') factHTML += `<p class="fact-action">${fact.action}</p>`;
-        healingFactContainer.innerHTML = factHTML;
-
-        // Visual feedback on change
-        healingFactContainer.style.backgroundColor = '#dcedc8'; // Temporary highlight color
-        setTimeout(() => {
-            // Check if container still exists before changing style back
-            // Use the dark theme background color for consistency
-            if (healingFactContainer) healingFactContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
-        }, 300); // Duration of highlight
-    }
-
-    // Function to display the initial random fact on load
-     function displayRandomFact() {
-        if (!factsData.healing_insights || factsData.healing_insights.length === 0) return;
-        const randomIndex = Math.floor(Math.random() * factsData.healing_insights.length);
-        displayFact(randomIndex); // Display the randomly selected fact
-    }
-
-    // Function to display the next random fact, ensuring it's different from the current one
-    function displayNextRandomFact() {
-         if (!factsData.healing_insights || factsData.healing_insights.length === 0) return; // No facts
-         if (factsData.healing_insights.length === 1) { // Only one fact, just display it
-             displayFact(0);
-             return;
-         }
-
-         let nextIndex;
-         // Keep generating random indices until a different one is found
-         do {
-             nextIndex = Math.floor(Math.random() * factsData.healing_insights.length);
-         } while (nextIndex === currentFactIndex); // Ensure it's not the same as the current one
-
-         displayFact(nextIndex); // Display the new random fact
-    }
+    <div id="personalization-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[1002] hidden">
+        <div class="bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h4 class="text-lg font-semibold text-white mb-4">Customize Your Experience</h4>
+            <p class="text-sm text-gray-300 mb-4">Help us show you more relevant stories by telling us your interests. This is optional and you can change it anytime.</p>
+            <div id="interests-selection" class="space-y-2 mb-4">
+                <label class="block text-sm font-medium text-sky-300">What are you focusing on?</label>
+                <div><input type="checkbox" id="interest-career" value="Career" class="form-checkbox rounded text-sky-500"> <label for="interest-career" class="ml-2 text-gray-300">Career</label></div>
+                <div><input type="checkbox" id="interest-health" value="Health & Wellness" class="form-checkbox rounded text-sky-500"> <label for="interest-health" class="ml-2 text-gray-300">Health & Wellness</label></div>
+                <div><input type="checkbox" id="interest-growth" value="Personal Growth" class="form-checkbox rounded text-sky-500"> <label for="interest-growth" class="ml-2 text-gray-300">Personal Growth</label></div>
+                </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-personalization-btn" class="px-4 py-2 text-sm text-gray-300 hover:bg-slate-700 rounded-md">Skip</button>
+                <button id="save-personalization-btn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-md">Save Preferences</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="manage-saved-filters-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[1002] hidden">
+        <div class="bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h4 class="text-lg font-semibold text-white mb-4">Manage Saved Filters</h4>
+            <div id="saved-filters-list" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                <p class="text-gray-400 text-sm">No filters saved yet.</p>
+            </div>
+            <div class="flex justify-end">
+                <button id="close-manage-saved-filters-btn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-md">Close</button>
+            </div>
+        </div>
+    </div>
 
 
-    // --- Cookie Consent Banner Logic ---
-    const consentGiven = localStorage.getItem('cookieConsentGiven');
-    if (!consentGiven && consentBanner) {
-        consentBanner.style.display = 'block'; // Show banner if no consent stored
-        if (acceptButton) {
-            acceptButton.addEventListener('click', () => {
-                localStorage.setItem('cookieConsentGiven', 'true'); // Store consent
-                consentBanner.classList.add('cookie-consent-hidden'); // Hide banner
-            });
-        }
-    } else if (consentBanner) {
-        consentBanner.classList.add('cookie-consent-hidden'); // Keep hidden if already consented
-    }
-    // Note: GA script still loads initially in this simple setup. See previous notes.
+    <footer class="bg-slate-800/50 border-t border-slate-700 mt-auto">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-400 text-sm">
+            <p class="footer-links">
+                <a href="privacy.html" class="hover:text-sky-400 transition-colors">Privacy Policy</a> | 
+                <a href="terms.html" class="hover:text-sky-400 transition-colors">Terms of Use</a>
+            </p>
+            <p class="mt-2">&copy; <span id="current-year"></span> FutureSelf.space. All rights reserved.</p>
+        </div>
+    </footer>
 
+    <div id="cookieConsentBanner" class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 p-4 shadow-lg z-[1010] hidden">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p class="text-sm text-gray-300">
+                This website uses cookies (specifically Google Analytics) to analyze traffic and improve your experience. By continuing to use this site, you acknowledge this use. Learn more in our <a href="privacy.html" class="text-sky-400 hover:underline">Privacy Policy</a>.
+            </p>
+            <button id="cookieConsentAccept" class="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-md shadow-sm whitespace-nowrap transition-colors">Got it!</button>
+        </div>
+    </div>
 
-    // --- Event Listeners ---
-
-    // Listener for "Show Another Insight" button (uses random function)
-    if (nextInsightBtn) {
-        nextInsightBtn.addEventListener('click', displayNextRandomFact);
-    }
-
-    // Listener for Modal Close Button
-    if (modalCloseBtn) {
-         modalCloseBtn.addEventListener('click', closeModal);
-    }
-
-    // Listener for Modal Background Click (closes modal)
-    if (modal) {
-        modal.addEventListener('click', (event) => {
-            // Close only if the click is directly on the modal background (event.target)
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-    }
-
-    // Listener for Escape Key to Close Modal
-    document.addEventListener('keydown', (event) => {
-        // Check if modal exists and is currently displayed ('flex')
-        if (event.key === 'Escape' && modal && modal.style.display === 'flex') {
-            closeModal();
-        }
-    });
-
-    // --- Initialization ---
-    fetchData(); // Start the process by fetching data
-
-}); // End DOMContentLoaded
-
+    <script src="script.js"></script>
+</body>
+</html>
