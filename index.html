@@ -38,7 +38,7 @@
                         <a href="#insights-section" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Insights</a>
                         <a href="#recommendations-section" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">For You</a>
                         <a href="about.html" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">About</a>
-                        <a href="https://forms.gle/fxrWSSNjG5sMyhdU9" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Feedback</a>
+                        <button id="feedback-btn" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Feedback</button>
                         <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="bg-orange-500 hover:bg-orange-600 text-slate-900 font-semibold px-4 py-2 rounded-md text-sm shadow-md transition-colors donate-button">
                             🌿 Support This Project
                         </a>
@@ -63,7 +63,7 @@
                 <a href="#insights-section" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Insights</a>
                 <a href="#recommendations-section" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">For You</a>
                 <a href="about.html" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About</a>
-                <a href="https://forms.gle/fxrWSSNjG5sMyhdU9" target="_blank" rel="noopener noreferrer" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Feedback</a>
+                <button id="feedback-btn-mobile" class="text-gray-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium w-full text-left">Feedback</button>
                 <a href="http://revolut.me/yonatahf89" target="_blank" rel="noopener noreferrer" class="bg-orange-500 hover:bg-orange-600 text-slate-900 font-semibold block px-3 py-2 rounded-md text-base shadow-md transition-colors donate-button">
                     🌿 Support This Project
                 </a>
@@ -83,17 +83,19 @@
             </div>
 
             <div id="filter-controls" class="bg-slate-700/50 p-4 md:p-6 rounded-lg mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    <div class="filter-group">
-                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Method (5+ stories):</h4>
-                        <div id="method-filters" class="filter-buttons space-x-1 space-y-1"></div>
-                    </div>
-                    <div class="filter-group">
-                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Theme:</h4>
-                        <div id="theme-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                <div class="flex justify-center">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-2xl">
+                        <div class="filter-group">
+                            <h4 class="text-sm font-semibold text-sky-300 mb-2">Method (5+ stories):</h4>
+                            <div id="method-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                        </div>
+                        <div class="filter-group">
+                            <h4 class="text-sm font-semibold text-sky-300 mb-2">Theme:</h4>
+                            <div id="theme-filters" class="filter-buttons space-x-1 space-y-1"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-6 flex flex-wrap gap-2 items-center">
+                <div class="mt-6 flex flex-wrap gap-2 items-center justify-center">
                     <button id="clear-filters-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">Clear All Filters</button>
                     <div id="saved-filters-controls" class="flex items-center gap-2">
                         <button id="save-filters-btn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">Save Filters</button>
@@ -216,6 +218,23 @@
             </div>
         </div>
     </div>
+    
+    <div id="feedback-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[1002] hidden">
+        <div class="bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h4 class="text-lg font-semibold text-white mb-4">Send Feedback</h4>
+            <p class="text-sm text-gray-300 mb-4">We'd love to hear your thoughts and suggestions!</p>
+            <form id="feedback-form">
+                <textarea id="feedback-text" placeholder="Share your feedback, suggestions, or report issues..." class="w-full p-3 rounded-lg border border-slate-600 bg-slate-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-colors min-h-[100px] resize-y" required></textarea>
+                <div class="flex justify-end space-x-3 mt-4">
+                    <button type="button" id="cancel-feedback-btn" class="px-4 py-2 text-sm text-gray-300 hover:bg-slate-700 rounded-md">Cancel</button>
+                    <button type="submit" id="send-feedback-btn" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-md">Send Feedback</button>
+                </div>
+            </form>
+            <div id="feedback-success" class="hidden mt-4 p-3 bg-green-800/50 rounded-md text-sm text-green-200">
+                Thank you for your feedback! We appreciate your input.
+            </div>
+        </div>
+    </div>
 
     <footer class="bg-slate-800/50 border-t border-slate-700 mt-auto">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-400 text-sm">
@@ -237,5 +256,65 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Feedback functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const feedbackBtn = document.getElementById('feedback-btn');
+            const feedbackBtnMobile = document.getElementById('feedback-btn-mobile');
+            const feedbackModal = document.getElementById('feedback-modal');
+            const cancelFeedbackBtn = document.getElementById('cancel-feedback-btn');
+            const feedbackForm = document.getElementById('feedback-form');
+            const feedbackText = document.getElementById('feedback-text');
+            const feedbackSuccess = document.getElementById('feedback-success');
+
+            function openFeedbackModal() {
+                feedbackModal.classList.remove('hidden');
+                feedbackText.focus();
+            }
+
+            function closeFeedbackModal() {
+                feedbackModal.classList.add('hidden');
+                feedbackForm.reset();
+                feedbackSuccess.classList.add('hidden');
+            }
+
+            feedbackBtn?.addEventListener('click', openFeedbackModal);
+            feedbackBtnMobile?.addEventListener('click', openFeedbackModal);
+            cancelFeedbackBtn.addEventListener('click', closeFeedbackModal);
+
+            // Close modal when clicking outside
+            feedbackModal.addEventListener('click', function(e) {
+                if (e.target === feedbackModal) {
+                    closeFeedbackModal();
+                }
+            });
+
+            // Handle form submission
+            feedbackForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const feedback = feedbackText.value.trim();
+                if (!feedback) return;
+
+                // Create mailto link
+                const subject = encodeURIComponent('Feedback from FutureSelf.space');
+                const body = encodeURIComponent(feedback);
+                const mailtoLink = `mailto:10mvpsin20days@gmail.com?subject=${subject}&body=${body}`;
+                
+                // Open email client
+                window.location.href = mailtoLink;
+                
+                // Show success message
+                feedbackSuccess.classList.remove('hidden');
+                feedbackForm.style.display = 'none';
+                
+                // Auto close after 3 seconds
+                setTimeout(() => {
+                    closeFeedbackModal();
+                    feedbackForm.style.display = 'block';
+                }, 3000);
+            });
+        });
+    </script>
 </body>
 </html>
