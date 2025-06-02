@@ -12,6 +12,15 @@
       function gtag(){dataLayer.push(arguments);}
       // We will call gtag('js', new Date()); and gtag('config', 'G-FRDXP452X5'); from script.js after consent
     </script>
+    <style>
+      body {
+        background-image: url('space2.png');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+      }
+    </style>
 </head>
 <body class="bg-slate-900 text-gray-200 font-inter flex flex-col min-h-screen">
 
@@ -76,35 +85,12 @@
             <div id="filter-controls" class="bg-slate-700/50 p-4 md:p-6 rounded-lg mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                     <div class="filter-group">
-                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Condition (3+ stories):</h4>
-                        <div id="condition-filters" class="filter-buttons space-x-1 space-y-1">
-                            <span class="text-gray-400 italic text-xs">Loading filters...</span>
-                        </div>
-                        <button class="show-more-filters text-sky-400 hover:text-sky-300 text-xs mt-1" data-filter-type="condition" style="display: none;">Show More Conditions</button>
-                    </div>
-                    <div class="filter-group">
                         <h4 class="text-sm font-semibold text-sky-300 mb-2">Method (5+ stories):</h4>
                         <div id="method-filters" class="filter-buttons space-x-1 space-y-1"></div>
                     </div>
                     <div class="filter-group">
                         <h4 class="text-sm font-semibold text-sky-300 mb-2">Theme:</h4>
                         <div id="theme-filters" class="filter-buttons space-x-1 space-y-1"></div>
-                    </div>
-                     <div class="filter-group">
-                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Journey Stage:</h4>
-                        <div id="journeyStage-filters" class="filter-buttons space-x-1 space-y-1"></div>
-                    </div>
-                    <div class="filter-group">
-                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Transformation/Goal Type:</h4>
-                        <div id="transformationType-filters" class="filter-buttons space-x-1 space-y-1"></div>
-                    </div>
-                    <div class="filter-group">
-                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Timeframe:</h4>
-                        <div id="timeframe-filters" class="filter-buttons space-x-1 space-y-1"></div>
-                    </div>
-                    <div class="filter-group">
-                        <h4 class="text-sm font-semibold text-sky-300 mb-2">Emotional Tone:</h4>
-                        <div id="emotion-filters" class="filter-buttons space-x-1 space-y-1"></div>
                     </div>
                 </div>
                 <div class="mt-6 flex flex-wrap gap-2 items-center">
@@ -230,7 +216,6 @@
             </div>
         </div>
     </div>
-
 
     <footer class="bg-slate-800/50 border-t border-slate-700 mt-auto">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-400 text-sm">
